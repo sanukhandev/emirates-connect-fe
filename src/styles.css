@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --ec-brand-primary: #9470f8;
+  --ec-brand-hover: #8057e8;
+  --ec-brand-strong: #593ba4;
+  --ec-brand-soft: #f0ebff;
+  --ec-canvas: #f8f7fa;
+  --ec-surface-card: #ffffff;
+  --ec-surface-muted: #f1f0f4;
+  --ec-border-subtle: #e4e1ea;
+  --ec-content-primary: #27242d;
+  --ec-content-secondary: #6f6a78;
+  --ec-content-muted: #918b9c;
+  --ec-status-success: #2f9e68;
+  --ec-status-warning: #c78a2c;
+  --ec-status-danger: #c94b5c;
+}
+
+@theme inline {
+  --color-brand-primary: var(--ec-brand-primary);
+  --color-brand-hover: var(--ec-brand-hover);
+  --color-brand-strong: var(--ec-brand-strong);
+  --color-brand-soft: var(--ec-brand-soft);
+  --color-canvas: var(--ec-canvas);
+  --color-surface-card: var(--ec-surface-card);
+  --color-surface-muted: var(--ec-surface-muted);
+  --color-border-subtle: var(--ec-border-subtle);
+  --color-content-primary: var(--ec-content-primary);
+  --color-content-secondary: var(--ec-content-secondary);
+  --color-content-muted: var(--ec-content-muted);
+  --color-status-success: var(--ec-status-success);
+  --color-status-warning: var(--ec-status-warning);
+  --color-status-danger: var(--ec-status-danger);
+  --font-sans: 'Ubuntu', sans-serif;
+  --shadow-card: 0 12px 30px rgb(39 36 45 / 0.06);
+}
+
+html {
+  font-family: 'Ubuntu', sans-serif;
+  background: var(--ec-canvas);
+}
+
+body {
+  margin: 0;
+}
