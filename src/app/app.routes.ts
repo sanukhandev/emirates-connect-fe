@@ -36,6 +36,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/business/business-create.component').then((component) => component.BusinessCreateComponent),
   },
   {
+    path: 'posts/:id/edit',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/post/post-edit.component').then((component) => component.PostEditComponent),
+  },
+  {
+    path: 'posts/:id',
+    loadComponent: () => import('./features/post/post-page.component').then((component) => component.PostPageComponent),
+  },
+  {
+    path: 'my-posts',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/post/my-posts.component').then((component) => component.MyPostsComponent),
+  },
+  {
     path: 'businesses/:slug/edit',
     canActivate: [authGuard, onboardingGuard],
     loadComponent: () => import('./features/business/business-edit.component').then((component) => component.BusinessEditComponent),
