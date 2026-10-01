@@ -1,4 +1,5 @@
 import { PostAuthor } from '../post/post.models';
+import { ReactionSummary } from '../reaction/reaction.models';
 
 export interface CommentReply {
   id: number;
@@ -6,6 +7,7 @@ export interface CommentReply {
   author: PostAuthor;
   created_at: string;
   updated_at: string;
+  reactions?: ReactionSummary;
 }
 
 export interface Comment {
@@ -16,6 +18,7 @@ export interface Comment {
   updated_at: string;
   replies_count: number;
   replies: CommentReply[];
+  reactions?: ReactionSummary;
 }
 
 export interface CommentPaginationMeta {

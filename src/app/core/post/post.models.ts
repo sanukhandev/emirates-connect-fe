@@ -1,4 +1,5 @@
 import { Business } from '../business/business.models';
+import { ReactionSummary } from '../reaction/reaction.models';
 
 export type PostStatus = 'draft' | 'published';
 export type PostAuthorType = 'user' | 'business';
@@ -41,6 +42,7 @@ export interface Post {
   updated_at: string;
   author: PostAuthor;
   media: PostMedia[];
+  reactions?: ReactionSummary;
 }
 
 export interface CreatePostPayload {

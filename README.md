@@ -85,17 +85,21 @@ Business data and role authorization come from the Laravel API. Industry and emi
 /posts/:id/edit    Edit an owned or authorized business post
 ```
 
-The composer supports user or managed-business authors, draft/published status, plain text, and up to four JPEG, PNG, or WebP images (8 MB each). Public user and business pages render published posts from the Laravel API; comments, reactions, and feed ranking are not part of this feature.
+The composer supports user or managed-business authors, draft/published status, plain text, and up to four JPEG, PNG, or WebP images (8 MB each). Public user and business pages render published posts from the Laravel API; comments and reactions are available on published content, while feed ranking is not part of this feature.
 
 ## Home feed
 
-The authenticated `/` route is a global chronological feed. It reuses the post card/composer, loads cursor pages progressively, and lazy-loads comments only when a post's `View comments` action is opened. Comments support user or managed-business authors and one reply level; no reactions, mentions, notifications, or moderation UI are included yet.
+The authenticated `/` route is a global chronological feed. It reuses the post card/composer, loads cursor pages progressively, and lazy-loads comments only when a post's `View comments` action is opened. Comments support user or managed-business authors and one reply level; reactions are human-user-only, with no mentions, notifications, or moderation UI.
 
 ```text
 /                  Authenticated chronological home feed
 ```
 
 The Phase 1 home feed is a global, non-personalized chronological view of published user and business posts from `GET /api/v1/feed`. It uses opaque cursor pagination, progressive loading, refresh/retry states, and the shared post composer/card. It is not a following or recommendation feed.
+
+## Reactions
+
+Posts, comments, and replies support `like`, `celebrate`, `support`, and `insightful` reactions through the shared reaction control. The UI shows the aggregate summary and current human user's reaction, updates optimistically, and rolls back failed mutations. Business identities do not react; reactions always belong to the authenticated human user. Reaction controls are not shown for drafts.
 
 ## Additional Resources
 
