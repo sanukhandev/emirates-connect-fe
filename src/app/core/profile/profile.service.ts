@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { map, Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -19,6 +19,12 @@ export class ProfileService {
   readonly isSaving = signal(false);
   readonly isUploadingAvatar = signal(false);
   readonly isUploadingCover = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (!this.authState.currentUser()) this.profile.set(null);
+    });
+  }
 
   getCurrentProfile(): Observable<UserProfile> {
     this.isLoading.set(true);

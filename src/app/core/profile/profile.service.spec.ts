@@ -73,4 +73,15 @@ describe('ProfileService', () => {
     http.expectOne(`${environment.apiBaseUrl}/users/42`).flush({ data: { id: 42, name: 'Public User', profile } });
     await expect(request).resolves.toMatchObject({ id: 42, profile });
   });
+
+  it('clears the in-memory profile when authentication is cleared', async () => {
+    const current = firstValueFrom(service.getCurrentProfile());
+    http.expectOne(`${environment.apiBaseUrl}/me/profile`).flush({ data: profile });
+    await expect(current).resolves.toEqual(profile);
+
+    TestBed.inject(AuthStateService).clear();
+    TestBed.flushEffects();
+
+    expect(service.profile()).toBeNull();
+  });
 });
