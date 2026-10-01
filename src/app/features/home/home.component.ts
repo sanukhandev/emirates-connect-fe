@@ -14,7 +14,7 @@ import { AuthService } from '../../core/auth/auth.service';
             <p class="text-sm font-medium uppercase tracking-[0.18em] text-brand-strong">Emirates Connect</p>
             <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Your professional network, thoughtfully built.</h1>
           </div>
-          <div class="flex items-center gap-3"><a routerLink="/profile" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Profile</a><button class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button></div>
+          <div class="flex flex-wrap items-center gap-3"><a routerLink="/businesses" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Businesses</a><a routerLink="/profile" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Profile</a><button class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button></div>
         </header>
         <section class="mt-8 grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
           <article class="rounded-3xl bg-surface-card p-6 shadow-card sm:p-8">

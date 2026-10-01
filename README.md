@@ -65,6 +65,18 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 Profile data and industry/emirate options are loaded from the Laravel API using the existing Sanctum SPA session.
 
+## Business routes
+
+```text
+/businesses             Current user's business memberships
+/businesses/create      Create a business page
+/businesses/:slug       Public business page
+/businesses/:slug/edit  Owner/admin business management and media
+/businesses/:slug/members  Owner/admin membership management
+```
+
+Business data and role authorization come from the Laravel API. Industry and emirate options are loaded from the backend metadata endpoints.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

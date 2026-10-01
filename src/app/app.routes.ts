@@ -31,6 +31,30 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/public-profile.component').then((component) => component.PublicProfileComponent),
   },
   {
+    path: 'businesses/create',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/business/business-create.component').then((component) => component.BusinessCreateComponent),
+  },
+  {
+    path: 'businesses/:slug/edit',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/business/business-edit.component').then((component) => component.BusinessEditComponent),
+  },
+  {
+    path: 'businesses/:slug/members',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/business/business-members.component').then((component) => component.BusinessMembersComponent),
+  },
+  {
+    path: 'businesses/:slug',
+    loadComponent: () => import('./features/business/business-page.component').then((component) => component.BusinessPageComponent),
+  },
+  {
+    path: 'businesses',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/business/business-list.component').then((component) => component.BusinessListComponent),
+  },
+  {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/login.component').then((component) => component.LoginComponent),
