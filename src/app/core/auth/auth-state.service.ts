@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 
-import { User } from './auth.models';
+import { User, UserProfile } from './auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthStateService {
@@ -21,5 +21,12 @@ export class AuthStateService {
 
   clear(): void {
     this.userSignal.set(null);
+  }
+
+  updateProfile(profile: UserProfile): void {
+    const user = this.userSignal();
+    if (user) {
+      this.userSignal.set({ ...user, profile });
+    }
   }
 }

@@ -1,10 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-home',
+  imports: [RouterLink],
   template: `
     <main class="min-h-screen bg-canvas px-4 py-6 text-content-primary sm:px-6 lg:px-8">
       <div class="mx-auto max-w-7xl">
@@ -13,7 +14,7 @@ import { AuthService } from '../../core/auth/auth.service';
             <p class="text-sm font-medium uppercase tracking-[0.18em] text-brand-strong">Emirates Connect</p>
             <h1 class="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Your professional network, thoughtfully built.</h1>
           </div>
-          <button class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button>
+          <div class="flex items-center gap-3"><a routerLink="/profile" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Profile</a><button class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button></div>
         </header>
         <section class="mt-8 grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
           <article class="rounded-3xl bg-surface-card p-6 shadow-card sm:p-8">

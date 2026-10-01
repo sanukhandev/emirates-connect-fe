@@ -53,6 +53,11 @@ export class AuthService {
     return this.initialization$;
   }
 
+  refreshCurrentUser(): Observable<User | null> {
+    this.initialization$ = undefined;
+    return this.initialize().pipe(map(() => this.state.currentUser()));
+  }
+
   getCsrfCookie(): Observable<void> {
     return this.http.get<void>(`${environment.backendOrigin}/sanctum/csrf-cookie`).pipe(map(() => undefined));
   }
