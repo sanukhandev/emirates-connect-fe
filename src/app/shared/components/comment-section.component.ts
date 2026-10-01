@@ -62,7 +62,7 @@ export class CommentSectionComponent implements OnInit {
   private currentPage = 0;
 
   ngOnInit(): void {
-    this.authService.initialize().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { if (this.auth.currentUser()) this.business.getMyBusinesses().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined }); } });
+    this.authService.initialize().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { if (this.auth.currentUser() && !this.business.myBusinesses().length) this.business.getMyBusinesses().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined }); } });
     if (this.autoLoad) this.loadInitial();
   }
 
