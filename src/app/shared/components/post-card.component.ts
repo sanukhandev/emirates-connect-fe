@@ -8,7 +8,7 @@ import { Post } from '../../core/post/post.models';
   selector: 'app-post-card',
   imports: [DatePipe, RouterLink],
   template: `
-    <article class="rounded-3xl bg-surface-card p-5 shadow-card sm:p-6">
+    <article [attr.data-post-id]="post().id" class="rounded-3xl bg-surface-card p-5 shadow-card sm:p-6">
       <header class="flex items-start gap-3">
         @if (isUser()) { <a [routerLink]="['/users', post().author.id]" class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft font-bold text-brand-strong">@if (userAvatar()) { <img [src]="userAvatar()" [alt]="authorName() + ' profile photo'" class="h-full w-full object-cover" /> } @else { {{ initials(authorName()) }} }</a> } @else { <a [routerLink]="['/businesses', businessSlug()]" class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft font-bold text-brand-strong">@if (businessLogo()) { <img [src]="businessLogo()" [alt]="authorName() + ' logo'" class="h-full w-full object-cover" /> } @else { {{ initials(authorName()) }} }</a> }
         <div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><h2 class="font-semibold">{{ authorName() }}</h2>@if (post().author.type === 'business') { <span class="rounded-full bg-brand-soft px-2 py-0.5 text-xs text-brand-strong">Business</span> } @if (post().status === 'draft') { <span class="rounded-full bg-status-warning/15 px-2 py-0.5 text-xs text-status-warning">Draft</span> }</div><p class="text-sm text-content-muted">{{ post().published_at || post().created_at | date:'medium' }}</p></div>

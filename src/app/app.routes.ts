@@ -8,7 +8,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard, onboardingGuard],
-    loadComponent: () => import('./features/home/home.component').then((component) => component.HomeComponent),
+    loadComponent: () => import('./features/feed/feed-page.component').then((component) => component.FeedPageComponent),
   },
   {
     path: 'onboarding',

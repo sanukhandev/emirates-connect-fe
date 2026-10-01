@@ -87,6 +87,14 @@ Business data and role authorization come from the Laravel API. Industry and emi
 
 The composer supports user or managed-business authors, draft/published status, plain text, and up to four JPEG, PNG, or WebP images (8 MB each). Public user and business pages render published posts from the Laravel API; comments, reactions, and feed ranking are not part of this feature.
 
+## Home feed
+
+```text
+/                  Authenticated chronological home feed
+```
+
+The Phase 1 home feed is a global, non-personalized chronological view of published user and business posts from `GET /api/v1/feed`. It uses opaque cursor pagination, progressive loading, refresh/retry states, and the shared post composer/card. It is not a following or recommendation feed.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
