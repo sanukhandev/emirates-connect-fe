@@ -1,18 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { createTestUser } from './business/helpers';
 
 const logo = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
 const cover = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAH/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAqf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/AX//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/AX//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/Aqf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/IV//2gAMAwEAAgADAAAAEP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8Qf//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8Qf//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAT8Qf//Z', 'base64');
 
 test('creates, edits, lists and manages business media', async ({ page }) => {
-  const email = process.env['EC_E2E_EMAIL'];
-  const password = process.env['EC_E2E_PASSWORD'];
-  test.skip(!email || !password, 'Set EC_E2E_EMAIL and EC_E2E_PASSWORD for the local development account.');
-
-  await page.goto('/login');
-  await page.locator('input[type="email"]').fill(email!);
-  await page.locator('input[type="password"]').fill(password!);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page).toHaveURL(/\/(?:$|profile|businesses|onboarding)/);
+  test.setTimeout(120_000);
+  await createTestUser(page, 'legacy-business');
 
   await page.goto('/businesses/create');
   await expect(page.getByRole('heading', { name: 'Create a business page' })).toBeVisible();

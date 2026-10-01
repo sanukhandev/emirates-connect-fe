@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { createBusiness, credentials, loginAs } from './helpers';
+import { createBusiness, createTestUser } from './helpers';
 
 test('owner can cancel and confirm business deactivation', async ({ page }) => {
-  const owner = credentials('owner');
-  test.skip(!owner, 'Set owner E2E credentials.');
-  await loginAs(page, owner!);
+  test.setTimeout(120_000);
+  await createTestUser(page, 'deactivate-owner');
   const { slug } = await createBusiness(page, 'Deactivate');
   await page.goto(`/businesses/${slug}/edit`);
   await page.getByRole('button', { name: 'Deactivate Business' }).click();

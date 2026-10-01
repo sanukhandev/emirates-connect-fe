@@ -1,23 +1,38 @@
 import { expect, Page } from '@playwright/test';
 
-export interface Credentials {
+export interface ProvisionedUser {
   email: string;
   password: string;
+  userId: number;
 }
 
-export function credentials(role: 'owner' | 'admin' | 'editor' | 'nonMember'): Credentials | null {
-  const prefix = role === 'nonMember' ? 'NON_MEMBER' : role.toUpperCase();
-  const email = process.env[`E2E_${prefix}_EMAIL`] ?? (role === 'owner' ? process.env['EC_E2E_EMAIL'] : undefined);
-  const password = process.env[`E2E_${prefix}_PASSWORD`] ?? (role === 'owner' ? process.env['EC_E2E_PASSWORD'] : undefined);
-  return email && password ? { email, password } : null;
-}
-
-export async function loginAs(page: Page, account: Credentials): Promise<void> {
-  await page.goto('/login');
-  await page.locator('input[type="email"]').fill(account.email);
-  await page.locator('input[type="password"]').fill(account.password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page).toHaveURL(/\/(?:$|profile|businesses|onboarding)/);
+export async function createTestUser(page: Page, roleLabel: string): Promise<ProvisionedUser> {
+  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const account = { email: `ec-e2e-${roleLabel}-${suffix}@example.test`, password: `E2e-${suffix}-Aa1!` };
+  await page.goto('/register');
+  await page.getByLabel('Name').fill(`EC005 ${roleLabel}`);
+  await page.getByLabel('Email').fill(account.email);
+  await page.getByLabel('Password', { exact: true }).fill(account.password);
+  await page.getByLabel('Confirm password').fill(account.password);
+  const industriesLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/meta/industries') && response.status() === 200);
+  const emiratesLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/meta/emirates') && response.status() === 200);
+  const profileLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/me/profile') && response.status() === 200);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page).toHaveURL(/\/onboarding$/, { timeout: 30_000 });
+  await Promise.all([industriesLoaded, emiratesLoaded, profileLoaded]);
+  await page.getByLabel('Display name').fill(`EC005 ${roleLabel}`);
+  await page.getByLabel('Headline').fill(`Professional ${roleLabel}`);
+  await page.getByLabel('Job title').fill('Manager');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await page.locator('#onboarding-industry').selectOption({ index: 1 });
+  await page.locator('#onboarding-emirate').selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await page.getByLabel('Bio Optional').fill(`Automated ${roleLabel} profile.`);
+  await page.getByLabel('Website Optional').fill('https://example.test');
+  await page.getByLabel('LinkedIn profile Optional').fill(`https://www.linkedin.com/in/ec005-${suffix}`);
+  await page.getByRole('button', { name: 'Complete profile', exact: true }).click();
+  await expect(page).toHaveURL(/\/profile$/);
+  return { ...account, userId: await currentUserId(page) };
 }
 
 export async function createBusiness(page: Page, label = 'Business'): Promise<{ name: string; slug: string }> {
@@ -42,17 +57,18 @@ export async function createBusiness(page: Page, label = 'Business'): Promise<{ 
 }
 
 export async function currentUserId(page: Page): Promise<number> {
-  return page.evaluate(async () => {
-    const response = await fetch('/api/v1/me', { credentials: 'include' });
+  const apiBaseUrl = process.env.E2E_API_BASE_URL ?? 'http://localhost:8000/api/v1';
+  return page.evaluate(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/me`, { credentials: 'include' });
     const body = await response.json() as { data: { id: number } };
     return body.data.id;
-  });
+  }, apiBaseUrl);
 }
 
 export async function addMember(page: Page, slug: string, userId: number, role: 'admin' | 'editor'): Promise<void> {
   await page.goto(`/businesses/${slug}/members`);
   await page.getByLabel('Existing Emirates Connect User ID').fill(String(userId));
-  await page.getByLabel('Role').selectOption(role);
+  await page.locator('#member-role').selectOption(role);
   const response = page.waitForResponse((candidate) => candidate.url().endsWith(`/api/v1/businesses/${slug}/members`) && candidate.request().method() === 'POST');
   await page.getByRole('button', { name: 'Add member', exact: true }).click();
   expect((await response).ok()).toBeTruthy();

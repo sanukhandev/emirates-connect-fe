@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { createBusiness, credentials, loginAs } from './helpers';
+import { createBusiness, createTestUser } from './helpers';
 
 test('owner can edit business details while keeping the backend slug stable', async ({ page }) => {
-  const owner = credentials('owner');
-  test.skip(!owner, 'Set owner E2E credentials.');
-  await loginAs(page, owner!);
+  test.setTimeout(120_000);
+  await createTestUser(page, 'edit-owner');
   const { slug } = await createBusiness(page, 'Edit');
   const renamed = `EC005 Renamed ${Date.now()}`;
   await page.goto(`/businesses/${slug}/edit`);

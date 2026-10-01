@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { createBusiness, credentials, coverOne, coverTwo, logoOne, logoTwo, loginAs } from './helpers';
+import { createBusiness, createTestUser, coverOne, coverTwo, logoOne, logoTwo } from './helpers';
 
 test('validates logo and cover upload, persistence, replacement, deletion, and invalid MIME', async ({ page }) => {
-  const owner = credentials('owner');
-  test.skip(!owner, 'Set owner E2E credentials.');
-  await loginAs(page, owner!);
+  test.setTimeout(120_000);
+  await createTestUser(page, 'media-owner');
   const { name, slug } = await createBusiness(page, 'Media');
   await page.goto(`/businesses/${slug}/edit`);
 

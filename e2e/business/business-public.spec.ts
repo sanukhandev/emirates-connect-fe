@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { createBusiness, credentials, loginAs } from './helpers';
+import { createBusiness, createTestUser } from './helpers';
 
 test('renders public business details, contact links, and a neutral 404', async ({ page }) => {
-  const owner = credentials('owner');
-  test.skip(!owner, 'Set owner E2E credentials.');
-  await loginAs(page, owner!);
+  test.setTimeout(120_000);
+  await createTestUser(page, 'public-owner');
   const { name, slug } = await createBusiness(page, 'Public');
   await expect(page.getByText('A professional business presence.')).toBeVisible();
   await expect(page.getByText('A focused business page for browser validation.')).toBeVisible();

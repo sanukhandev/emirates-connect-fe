@@ -1,33 +1,32 @@
 import { expect, test } from '@playwright/test';
-import { addMember, createBusiness, credentials, currentUserId, loginAs } from './helpers';
+import { addMember, createBusiness, createTestUser } from './helpers';
 
 test('enforces owner, admin, editor, and non-member management UX', async ({ browser }) => {
-  const owner = credentials('owner');
-  const admin = credentials('admin');
-  const editor = credentials('editor');
-  const nonMember = credentials('nonMember');
-  test.skip(!owner || !admin || !editor || !nonMember, 'Set owner, admin, editor, and non-member credentials.');
-
+  test.setTimeout(180_000);
   const ownerPage = await browser.newPage();
-  await loginAs(ownerPage, owner!);
+  await createTestUser(ownerPage, 'permissions-owner');
   const { slug } = await createBusiness(ownerPage, 'Permissions');
   const adminPage = await browser.newPage();
-  await loginAs(adminPage, admin!);
-  const adminId = await currentUserId(adminPage);
+  const admin = await createTestUser(adminPage, 'permissions-admin');
   const editorPage = await browser.newPage();
-  await loginAs(editorPage, editor!);
-  const editorId = await currentUserId(editorPage);
-  await addMember(ownerPage, slug, adminId, 'admin');
-  await addMember(ownerPage, slug, editorId, 'editor');
+  const editor = await createTestUser(editorPage, 'permissions-editor');
+  const outsiderPage = await browser.newPage();
+  await createTestUser(outsiderPage, 'permissions-nonmember');
+  const editorTwoPage = await browser.newPage();
+  const editorTwo = await createTestUser(editorTwoPage, 'permissions-editor-two');
+  await addMember(ownerPage, slug, admin.userId, 'admin');
+  await addMember(ownerPage, slug, editor.userId, 'editor');
 
   await ownerPage.goto(`/businesses/${slug}`);
   await expect(ownerPage.getByRole('link', { name: 'Edit Business' })).toBeVisible();
   await expect(ownerPage.getByRole('link', { name: 'Manage Members' })).toBeVisible();
+  await ownerPage.goto(`/businesses/${slug}/edit`);
   await expect(ownerPage.getByRole('button', { name: 'Deactivate Business' })).toBeVisible();
 
   await adminPage.goto(`/businesses/${slug}`);
   await expect(adminPage.getByRole('link', { name: 'Edit Business' })).toBeVisible();
   await expect(adminPage.getByRole('link', { name: 'Manage Members' })).toBeVisible();
+  await adminPage.goto(`/businesses/${slug}/edit`);
   await expect(adminPage.getByRole('button', { name: 'Deactivate Business' })).toHaveCount(0);
   await adminPage.goto(`/businesses/${slug}/members`);
   await expect(adminPage.locator('#member-role option')).toHaveCount(1);
@@ -41,8 +40,6 @@ test('enforces owner, admin, editor, and non-member management UX', async ({ bro
   await editorPage.goto(`/businesses/${slug}/members`);
   await expect(editorPage.getByRole('heading', { name: 'Management unavailable' })).toBeVisible();
 
-  const outsiderPage = await browser.newPage();
-  await loginAs(outsiderPage, nonMember!);
   await outsiderPage.goto(`/businesses/${slug}`);
   await expect(outsiderPage.getByRole('link', { name: 'Edit Business' })).toHaveCount(0);
   await expect(outsiderPage.getByRole('link', { name: 'Manage Members' })).toHaveCount(0);
@@ -50,5 +47,7 @@ test('enforces owner, admin, editor, and non-member management UX', async ({ bro
   await expect(outsiderPage.getByRole('heading', { name: 'Management unavailable' })).toBeVisible();
   await outsiderPage.goto(`/businesses/${slug}/members`);
   await expect(outsiderPage.getByRole('heading', { name: 'Management unavailable' })).toBeVisible();
-  await Promise.all([ownerPage.close(), adminPage.close(), editorPage.close(), outsiderPage.close()]);
+  await addMember(adminPage, slug, editorTwo.userId, 'editor');
+  await expect(adminPage.getByText('Member added.')).toBeVisible();
+  await Promise.all([ownerPage.close(), adminPage.close(), editorPage.close(), outsiderPage.close(), editorTwoPage.close()]);
 });
