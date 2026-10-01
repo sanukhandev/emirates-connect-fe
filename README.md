@@ -89,6 +89,8 @@ The composer supports user or managed-business authors, draft/published status, 
 
 ## Home feed
 
+The authenticated `/` route is a global chronological feed. It reuses the post card/composer, loads cursor pages progressively, and lazy-loads comments only when a post's `View comments` action is opened. Comments support user or managed-business authors and one reply level; no reactions, mentions, notifications, or moderation UI are included yet.
+
 ```text
 /                  Authenticated chronological home feed
 ```

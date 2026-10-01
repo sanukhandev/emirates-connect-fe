@@ -1,12 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Post } from '../../core/post/post.models';
+import { CommentSectionComponent } from './comment-section.component';
 
 @Component({
   selector: 'app-post-card',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, CommentSectionComponent],
   template: `
     <article [attr.data-post-id]="post().id" class="rounded-3xl bg-surface-card p-5 shadow-card sm:p-6">
       <header class="flex items-start gap-3">
@@ -16,14 +17,17 @@ import { Post } from '../../core/post/post.models';
       </header>
       @if (post().body) { <p class="mt-5 whitespace-pre-line leading-7 text-content-secondary">{{ post().body }}</p> }
       @if (post().media.length) { <div class="mt-5 grid gap-2 overflow-hidden rounded-2xl" [class.grid-cols-2]="post().media.length > 1">@for (media of post().media; track media.id; let index = $index) { <img [src]="media.url" [alt]="'Post image ' + (index + 1)" class="max-h-[30rem] w-full object-cover" /> }</div> }
+      @if (showComments() && post().status === 'published') { <button type="button" class="mt-5 text-sm font-medium text-brand-strong" (click)="commentsOpen.set(!commentsOpen())" [attr.aria-expanded]="commentsOpen()">{{ commentsOpen() ? 'Hide comments' : 'View comments' }}</button>@if (commentsOpen()) { <app-comment-section [postId]="post().id" /> } }
     </article>
   `,
 })
 export class PostCardComponent {
   readonly post = input.required<Post>();
   readonly management = input(false);
+  readonly showComments = input(true);
   readonly edit = output<void>();
   readonly remove = output<void>();
+  readonly commentsOpen = signal(false);
   isUser(): boolean { return this.post().author.type === 'user'; }
   userAvatar(): string | null { const author = this.post().author; return author.type === 'user' ? author.avatar_url : null; }
   businessSlug(): string { const author = this.post().author; return author.type === 'business' ? author.slug : ''; }
