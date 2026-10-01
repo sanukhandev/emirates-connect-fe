@@ -40,6 +40,7 @@ describe('AuthService', () => {
     expect(login.request.withCredentials).toBe(false);
     expect(login.request.body).toEqual({ email: user.email, password: 'StrongPassword123!' });
     login.flush({ data: { user } });
+    http.expectOne(`${environment.apiBaseUrl}/me`).flush({ data: user });
 
     await expect(result).resolves.toEqual(user);
     expect(service.currentUser()).toEqual(user);
@@ -52,6 +53,7 @@ describe('AuthService', () => {
     http.expectOne(`${environment.backendOrigin}/sanctum/csrf-cookie`).flush(null);
     const register = http.expectOne(`${environment.apiBaseUrl}/auth/register`);
     register.flush({ data: { user } });
+    http.expectOne(`${environment.apiBaseUrl}/me`).flush({ data: user });
 
     await expect(result).resolves.toEqual(user);
     expect(service.currentUser()).toEqual(user);

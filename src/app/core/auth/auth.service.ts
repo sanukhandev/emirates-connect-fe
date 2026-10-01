@@ -66,7 +66,10 @@ export class AuthService {
     return this.getCsrfCookie().pipe(
       switchMap(() => this.http.post<ApiResponse<AuthPayload>>(`${environment.apiBaseUrl}/auth/login`, credentials)),
       map((response) => response.data.user),
-      tap((user) => this.state.setUser(user)),
+      switchMap((user) => {
+        this.state.setUser(user);
+        return this.refreshCurrentUser().pipe(map((currentUser) => currentUser ?? user));
+      }),
     );
   }
 
@@ -74,7 +77,10 @@ export class AuthService {
     return this.getCsrfCookie().pipe(
       switchMap(() => this.http.post<ApiResponse<AuthPayload>>(`${environment.apiBaseUrl}/auth/register`, payload)),
       map((response) => response.data.user),
-      tap((user) => this.state.setUser(user)),
+      switchMap((user) => {
+        this.state.setUser(user);
+        return this.refreshCurrentUser().pipe(map((currentUser) => currentUser ?? user));
+      }),
     );
   }
 
