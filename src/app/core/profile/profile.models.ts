@@ -21,6 +21,9 @@ export interface PublicUser {
   id: number;
   name: string;
   profile: UserProfile;
+  followers_count: number;
+  following_count: number;
+  is_following: boolean;
 }
 
 export type ProfileResponse = { data: UserProfile };

@@ -101,6 +101,18 @@ The Phase 1 home feed is a global, non-personalized chronological view of publis
 
 Posts, comments, and replies support `like`, `celebrate`, `support`, and `insightful` reactions through the shared reaction control. The UI shows the aggregate summary and current human user's reaction, updates optimistically, and rolls back failed mutations. Business identities do not react; reactions always belong to the authenticated human user. Reaction controls are not shown for drafts.
 
+## Follow network
+
+Public user and business pages expose human-user follow/unfollow controls with optimistic counts and rollback on failure. Network lists use the backend's paginated resources and load more relationships without duplicating targets.
+
+Routes:
+
+/users/:id/followers          User followers
+/users/:id/following          User's mixed user/business following list
+/businesses/:slug/followers   Business followers
+
+Follow actions always use the authenticated human account; there is no business follower identity. The home feed remains global chronological and is not personalized by follows.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

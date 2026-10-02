@@ -23,6 +23,9 @@ export interface User {
   account_status: UserStatus;
   created_at: string;
   updated_at: string;
+  followers_count?: number;
+  following_count?: number;
+  is_following?: boolean;
   profile?: UserProfile | null;
 }
 

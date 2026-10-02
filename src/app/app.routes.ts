@@ -27,6 +27,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile.component').then((component) => component.ProfileComponent),
   },
   {
+    path: 'users/:id/followers',
+    data: { networkKind: 'user-followers' },
+    loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
+  },
+  {
+    path: 'users/:id/following',
+    data: { networkKind: 'user-following' },
+    loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
+  },
+  {
     path: 'users/:id',
     loadComponent: () => import('./features/profile/public-profile.component').then((component) => component.PublicProfileComponent),
   },
@@ -48,6 +58,11 @@ export const routes: Routes = [
     path: 'my-posts',
     canActivate: [authGuard, onboardingGuard],
     loadComponent: () => import('./features/post/my-posts.component').then((component) => component.MyPostsComponent),
+  },
+  {
+    path: 'businesses/:slug/followers',
+    data: { networkKind: 'business-followers' },
+    loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
   },
   {
     path: 'businesses/:slug/edit',

@@ -16,6 +16,8 @@ export interface Business {
   cover_image_url: string | null;
   status: BusinessStatus;
   current_user_role: BusinessRole | null;
+  followers_count?: number;
+  is_following?: boolean;
   created_at: string;
   updated_at: string;
 }
