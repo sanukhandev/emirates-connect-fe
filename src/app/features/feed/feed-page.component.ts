@@ -10,16 +10,17 @@ import { Post } from '../../core/post/post.models';
 import { PostService } from '../../core/post/post.service';
 import { PostCardComponent } from '../../shared/components/post-card.component';
 import { PostComposerComponent } from '../post/post-composer.component';
+import { NotificationBellComponent } from '../../shared/components/notification-bell.component';
 
 @Component({
   selector: 'app-feed-page',
-  imports: [RouterLink, PostCardComponent, PostComposerComponent],
+  imports: [RouterLink, PostCardComponent, PostComposerComponent, NotificationBellComponent],
   template: `
     <main class="min-h-screen bg-canvas px-4 py-6 text-content-primary sm:px-6 lg:px-8">
       <div class="mx-auto max-w-5xl">
         <header class="flex flex-wrap items-center justify-between gap-4 border-b border-border-subtle pb-5">
           <div><p class="text-sm font-medium uppercase tracking-[0.18em] text-brand-strong">Emirates Connect</p><h1 class="mt-2 text-3xl font-bold tracking-tight">Home</h1><p class="mt-1 text-content-secondary">The latest professional updates from the community.</p></div>
-          <div class="flex flex-wrap items-center gap-3"><a routerLink="/search" class="rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Search</a><a routerLink="/reels" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Reels</a><a routerLink="/businesses" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Businesses</a><a routerLink="/profile" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Profile</a><button type="button" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="refresh()" [disabled]="feed.refreshing()">{{ feed.refreshing() ? 'Refreshing…' : 'Refresh' }}</button><button type="button" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button></div>
+          <div class="flex flex-wrap items-center gap-3"><a routerLink="/search" class="rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Search</a><a routerLink="/reels" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Reels</a><a routerLink="/businesses" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Businesses</a><a routerLink="/profile" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary">Profile</a><app-notification-bell /><button type="button" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="refresh()" [disabled]="feed.refreshing()">{{ feed.refreshing() ? 'Refreshing…' : 'Refresh' }}</button><button type="button" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="logout()" [disabled]="loggingOut()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button></div>
         </header>
 
         <div class="mx-auto mt-6 max-w-3xl space-y-5">

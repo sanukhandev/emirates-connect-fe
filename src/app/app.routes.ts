@@ -36,6 +36,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/search/search-page.component').then((component) => component.SearchPageComponent),
   },
   {
+    path: 'notifications',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/notifications/notifications-page.component').then((component) => component.NotificationsPageComponent),
+  },
+  {
     path: 'reels/create',
     canActivate: [authGuard, onboardingGuard],
     loadComponent: () => import('./features/reels/reel-create.component').then((component) => component.ReelCreateComponent),

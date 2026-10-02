@@ -126,6 +126,12 @@ Verification supports `not_submitted`, `pending`, `approved`, and `rejected` sta
 
 The public `/search` route supports unified people/business discovery plus user and business type filters, canonical industry/emirate filters, verified filtering, filter-only discovery and progressive page loading. Query state lives in the URL, so refresh, deep links and browser back/forward restore the same search. Result order is defined by the backend and is not re-ranked in Angular. Search is guest-accessible and does not search posts, personalize ranking, store search history or add recommendations.
 
+## Notifications
+
+The authenticated notification center is available at `/notifications`. The feed header exposes a bell with the backend unread count, and the center supports structured notification rendering, unread filtering, cursor-based Load more, single read, and Mark all as read. Notification messages are generated from trusted types and IDs; no arbitrary HTML or redirect URLs are rendered.
+
+EC-014 notifications are in-app only. Push, email, SMS and WebSocket delivery are not implemented.
+
 ## Reels
 
 ```text
