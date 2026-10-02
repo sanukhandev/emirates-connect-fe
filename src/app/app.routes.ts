@@ -36,6 +36,24 @@ export const routes: Routes = [
     loadComponent: () => import('./features/search/search-page.component').then((component) => component.SearchPageComponent),
   },
   {
+    path: 'reels/create',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/reels/reel-create.component').then((component) => component.ReelCreateComponent),
+  },
+  {
+    path: 'my-reels',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/reels/my-reels.component').then((component) => component.MyReelsComponent),
+  },
+  {
+    path: 'reels/:id',
+    loadComponent: () => import('./features/reels/reel-detail.component').then((component) => component.ReelDetailComponent),
+  },
+  {
+    path: 'reels',
+    loadComponent: () => import('./features/reels/reels-feed.component').then((component) => component.ReelsFeedComponent),
+  },
+  {
     path: 'users/:id/followers',
     data: { networkKind: 'user-followers' },
     loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
@@ -44,6 +62,10 @@ export const routes: Routes = [
     path: 'users/:id/following',
     data: { networkKind: 'user-following' },
     loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
+  },
+  {
+    path: 'users/:id/reels',
+    loadComponent: () => import('./features/reels/reel-list.component').then((component) => component.ReelListComponent),
   },
   {
     path: 'users/:id',
@@ -72,6 +94,10 @@ export const routes: Routes = [
     path: 'businesses/:slug/followers',
     data: { networkKind: 'business-followers' },
     loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
+  },
+  {
+    path: 'businesses/:slug/reels',
+    loadComponent: () => import('./features/reels/reel-list.component').then((component) => component.ReelListComponent),
   },
   {
     path: 'businesses/:slug/edit',

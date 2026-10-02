@@ -126,6 +126,19 @@ Verification supports `not_submitted`, `pending`, `approved`, and `rejected` sta
 
 The public `/search` route supports unified people/business discovery plus user and business type filters, canonical industry/emirate filters, verified filtering, filter-only discovery and progressive page loading. Query state lives in the URL, so refresh, deep links and browser back/forward restore the same search. Result order is defined by the backend and is not re-ranked in Angular. Search is guest-accessible and does not search posts, personalize ranking, store search history or add recommendations.
 
+## Reels
+
+```text
+/reels                    Public chronological reel feed
+/reels/:id                Published reel detail
+/reels/create             Authenticated user/business composer
+/my-reels                 Authenticated personal reel management
+/users/:id/reels          Public user reel listing
+/businesses/:slug/reels   Public business reel listing
+```
+
+The composer uses the backend two-step create/upload contract. It accepts one MP4 up to 100 MB, supports the current user or an active managed business, previews the file locally, and preserves the created reel ID if upload fails. Feed pagination passes the backend cursor opaquely and does not reorder or personalize results. EC-013 is chronological only; reactions, comments, recommendations and view metrics are not included.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
