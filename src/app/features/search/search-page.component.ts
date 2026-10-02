@@ -25,8 +25,8 @@ import { SearchService } from '../../core/search/search.service';
           </div>
           <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <fieldset class="sm:col-span-2 lg:col-span-1"><legend class="text-sm font-medium">Type</legend><div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="Search type">@for (option of typeOptions; track option.value) { <button type="button" [attr.aria-pressed]="type() === option.value" [class.bg-brand-primary]="type() === option.value" [class.text-white]="type() === option.value" class="rounded-xl border border-border-subtle px-3 py-2 text-sm font-medium hover:border-brand-primary" (click)="setType(option.value)">{{ option.label }}</button> }</div></fieldset>
-            <label class="block text-sm font-medium">Industry<select class="auth-input" [value]="industry()" (change)="setFilter('industry', value($event))"><option value="">All industries</option>@for (option of industries(); track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
-            <label class="block text-sm font-medium">Emirate<select class="auth-input" [value]="emirate()" (change)="setFilter('emirate', value($event))"><option value="">All emirates</option>@for (option of emirates(); track option.value) { <option [value]="option.value">{{ option.label }}</option> }</select></label>
+            <label class="block text-sm font-medium">Industry<select class="auth-input" [value]="industry()" (change)="setFilter('industry', value($event))"><option value="">All industries</option>@for (option of industries(); track option.value) { <option [value]="option.value" [selected]="industry() === option.value">{{ option.label }}</option> }</select></label>
+            <label class="block text-sm font-medium">Emirate<select class="auth-input" [value]="emirate()" (change)="setFilter('emirate', value($event))"><option value="">All emirates</option>@for (option of emirates(); track option.value) { <option [value]="option.value" [selected]="emirate() === option.value">{{ option.label }}</option> }</select></label>
             <label class="block text-sm font-medium">Verification<select class="auth-input" [value]="verifiedValue()" (change)="setVerified(value($event))"><option value="">All profiles</option><option value="true">Verified only</option><option value="false">Unverified only</option></select></label>
           </div>
           @if (hasFilters()) { <button type="button" class="mt-4 text-sm font-medium text-brand-strong hover:underline" (click)="clearFilters()">Clear filters</button> }
@@ -106,7 +106,7 @@ export class SearchPageComponent {
     const version = this.requestVersion;
     this.loadingMore.set(true);
     this.loadMoreError.set(false);
-    this.request(this.currentFilters({ page: this.lastPage() + 1 })).pipe(finalize(() => { if (version === this.requestVersion) this.loadingMore.set(false); })).subscribe({
+    this.request(this.currentFilters({ page: (this.pagination() ?? 1) + 1 })).pipe(finalize(() => { if (version === this.requestVersion) this.loadingMore.set(false); })).subscribe({
       next: (response) => { if (version === this.requestVersion) { this.results.update((current) => this.merge(current, response.data)); this.pagination.set(response.meta.current_page); this.lastPage.set(response.meta.last_page); } },
       error: () => { if (version === this.requestVersion) this.loadMoreError.set(true); },
     });
