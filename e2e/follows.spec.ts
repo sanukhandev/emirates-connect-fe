@@ -44,6 +44,10 @@ test.describe('EC-010 follows', () => {
 
     await secondPage.goto('/users/' + first.userId);
     await expect(secondPage.locator('app-follow-control button')).toHaveText('Follow');
+    const reverseFollow = secondPage.waitForResponse((response) => response.url().endsWith('/api/v1/users/' + first.userId + '/follow') && response.request().method() === 'PUT');
+    await secondPage.locator('app-follow-control button').click();
+    expect((await reverseFollow).ok()).toBeTruthy();
+    await expect(secondPage.locator('app-follow-control button')).toHaveText('Following');
     await secondContext.close();
   });
 
