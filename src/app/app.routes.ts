@@ -27,6 +27,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile.component').then((component) => component.ProfileComponent),
   },
   {
+    path: 'verification',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/verification/verification-page.component').then((component) => component.VerificationPageComponent),
+  },
+  {
     path: 'users/:id/followers',
     data: { networkKind: 'user-followers' },
     loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),
@@ -68,6 +73,12 @@ export const routes: Routes = [
     path: 'businesses/:slug/edit',
     canActivate: [authGuard, onboardingGuard],
     loadComponent: () => import('./features/business/business-edit.component').then((component) => component.BusinessEditComponent),
+  },
+  {
+    path: 'businesses/:slug/verification',
+    canActivate: [authGuard, onboardingGuard],
+    data: { verificationKind: 'business' },
+    loadComponent: () => import('./features/verification/verification-page.component').then((component) => component.VerificationPageComponent),
   },
   {
     path: 'businesses/:slug/members',

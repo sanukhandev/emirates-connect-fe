@@ -113,6 +113,15 @@ Routes:
 
 Follow actions always use the authenticated human account; there is no business follower identity. The home feed remains global chronological and is not personalized by follows.
 
+## Verification
+
+```text
+/verification                  Current user's verification submission/status
+/businesses/:slug/verification Owner/admin business verification submission/status
+```
+
+Verification supports `not_submitted`, `pending`, `approved`, and `rejected` states. User and authorized business managers can submit PDF, JPEG, PNG, or WebP documents (10 MB each, up to five files). Rejected requests can be resubmitted; private documents never expose storage paths or permanent URLs. Public profiles and business pages show only the approved verified badge. Admin review UI is not part of EC-011-FE.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

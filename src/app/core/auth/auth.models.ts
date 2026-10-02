@@ -13,6 +13,7 @@ export interface UserProfile {
   avatar_url: string | null;
   cover_image_url: string | null;
   onboarding_completed: boolean;
+  is_verified: boolean;
 }
 
 export interface User {
@@ -26,6 +27,7 @@ export interface User {
   followers_count?: number;
   following_count?: number;
   is_following?: boolean;
+  is_verified?: boolean;
   profile?: UserProfile | null;
 }
 

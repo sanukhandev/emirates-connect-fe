@@ -18,6 +18,7 @@ export interface Business {
   current_user_role: BusinessRole | null;
   followers_count?: number;
   is_following?: boolean;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
 }

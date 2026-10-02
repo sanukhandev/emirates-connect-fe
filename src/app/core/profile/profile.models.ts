@@ -24,6 +24,7 @@ export interface PublicUser {
   followers_count: number;
   following_count: number;
   is_following: boolean;
+  is_verified: boolean;
 }
 
 export type ProfileResponse = { data: UserProfile };
