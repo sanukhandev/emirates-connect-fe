@@ -32,6 +32,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/verification/verification-page.component').then((component) => component.VerificationPageComponent),
   },
   {
+    path: 'search',
+    loadComponent: () => import('./features/search/search-page.component').then((component) => component.SearchPageComponent),
+  },
+  {
     path: 'users/:id/followers',
     data: { networkKind: 'user-followers' },
     loadComponent: () => import('./features/network/network-list.component').then((component) => component.NetworkListComponent),

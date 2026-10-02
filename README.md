@@ -122,6 +122,10 @@ Follow actions always use the authenticated human account; there is no business 
 
 Verification supports `not_submitted`, `pending`, `approved`, and `rejected` states. User and authorized business managers can submit PDF, JPEG, PNG, or WebP documents (10 MB each, up to five files). Rejected requests can be resubmitted; private documents never expose storage paths or permanent URLs. Public profiles and business pages show only the approved verified badge. Admin review UI is not part of EC-011-FE.
 
+### Search and discovery
+
+The public `/search` route supports unified people/business discovery plus user and business type filters, canonical industry/emirate filters, verified filtering, filter-only discovery and progressive page loading. Query state lives in the URL, so refresh, deep links and browser back/forward restore the same search. Result order is defined by the backend and is not re-ranked in Angular. Search is guest-accessible and does not search posts, personalize ranking, store search history or add recommendations.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
