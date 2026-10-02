@@ -55,7 +55,9 @@ test.describe('EC-010 follows', () => {
     const other = await createTestUser(otherPage, 'follow-business-other');
 
     await page.goto('/businesses/' + business.slug);
+    const businessFollow = page.waitForResponse((response) => response.url().endsWith('/api/v1/businesses/' + business.slug + '/follow') && response.request().method() === 'PUT');
     await page.locator('app-follow-control button').click();
+    expect((await businessFollow).ok()).toBeTruthy();
     await expect(page.locator('app-follow-control button')).toHaveText('Following');
     await expect(page.getByText('1 followers', { exact: true })).toBeVisible();
 
@@ -64,7 +66,9 @@ test.describe('EC-010 follows', () => {
     await expect(page.getByText('Business', { exact: true })).toBeVisible();
 
     await otherPage.goto('/businesses/' + business.slug);
+    const otherBusinessFollow = otherPage.waitForResponse((response) => response.url().endsWith('/api/v1/businesses/' + business.slug + '/follow') && response.request().method() === 'PUT');
     await otherPage.locator('app-follow-control button').click();
+    expect((await otherBusinessFollow).ok()).toBeTruthy();
     await otherPage.goto('/businesses/' + business.slug + '/followers');
     await expect(otherPage.getByText('EC005 follow-business-other', { exact: false })).toBeVisible();
     await otherContext.close();
@@ -94,7 +98,7 @@ test.describe('EC-010 follows', () => {
     await guest.goto('/users/' + target.userId);
     await guest.locator('app-follow-control button').click();
     expect(mutationCalled).toBe(false);
-    await expect(guest).toHaveURL(/\/login$/);
+    await expect(guest).toHaveURL(/\/login(?:\?|$)/);
     await guestContext.close();
     await targetContext.close();
     expect(owner.userId).toBeGreaterThan(0);
@@ -108,14 +112,18 @@ test.describe('EC-010 follows', () => {
     const business = await createBusiness(page, 'Network Target');
 
     await page.goto('/users/' + target.userId);
+    const follow = page.waitForResponse((response) => response.url().endsWith('/api/v1/users/' + target.userId + '/follow') && response.request().method() === 'PUT');
     await page.locator('app-follow-control button').click();
+    expect((await follow).ok()).toBeTruthy();
     await page.goto('/users/' + target.userId + '/followers');
     await expect(page.getByText('EC005 network-actor', { exact: false })).toBeVisible();
 
     await page.goto('/users/' + actor.userId + '/following');
     await expect(page.getByText('EC005 network-target', { exact: false })).toBeVisible();
     await page.goto('/businesses/' + business.slug);
+    const businessFollow = page.waitForResponse((response) => response.url().endsWith('/api/v1/businesses/' + business.slug + '/follow') && response.request().method() === 'PUT');
     await page.locator('app-follow-control button').click();
+    expect((await businessFollow).ok()).toBeTruthy();
     await page.goto('/businesses/' + business.slug + '/followers');
     await expect(page.getByText('EC005 network-actor', { exact: false })).toBeVisible();
     await targetContext.close();

@@ -20,7 +20,7 @@ import { PublicUser } from '../../core/profile/profile.models';
         [attr.aria-label]="(isFollowing() ? 'Unfollow ' : 'Follow ') + targetLabel()"
         (click)="toggle()"
       >
-        {{ pending() ? 'Updating…' : isFollowing() ? 'Following' : 'Follow' }}
+        {{ isFollowing() ? 'Following' : 'Follow' }}
       </button>
       @if (error()) { <p role="alert" class="text-sm text-status-danger">{{ error() }}</p> }
     </div>
