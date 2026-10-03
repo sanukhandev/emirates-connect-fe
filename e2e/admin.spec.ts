@@ -9,19 +9,12 @@ async function login(page: Page, account: { email: string; password: string }): 
   await page.locator('#login-password').fill(account.password);
   const loginResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/login'));
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await loginResponse;
+  expect((await loginResponse).status()).toBe(200);
   await expect(page).not.toHaveURL(/\/login/);
 }
 
 test.describe('EC-016 admin console', () => {
   test.beforeAll(() => { fixtures = provisionAdminFixtures(); });
-  test.beforeEach(async ({ context }) => {
-    await context.route('**/*', async (route) => {
-      const url = route.request().url();
-      if (url.startsWith('http://localhost:8000')) await route.continue({ url: url.replace('http://localhost:8000', 'http://127.0.0.1:8001') });
-      else await route.continue();
-    });
-  });
   test.setTimeout(120_000);
 
   test('system admin sees dashboard and mixed verification queue', async ({ page }) => {
@@ -43,18 +36,19 @@ test.describe('EC-016 admin console', () => {
     await expect(page.getByRole('heading', { name: fixtures.marker + ' Author' })).toBeVisible();
     const documentResponsePromise = page.waitForResponse((response) => response.url().endsWith(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}`));
     const popupPromise = page.waitForEvent('popup');
+    const popupResponsePromise = page.context().waitForEvent('response', { predicate: (response) => response.url().includes('/download') });
     const accessRequestPromise = page.waitForRequest((request) => request.url().includes(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}`));
     await page.getByRole('button', { name: 'Open' }).click();
-    const [documentResponse, popup, accessRequest] = await Promise.all([documentResponsePromise, popupPromise, accessRequestPromise]);
+    const [documentResponse, popup, accessRequest, popupResponse] = await Promise.all([documentResponsePromise, popupPromise, accessRequestPromise, popupResponsePromise]);
     expect(documentResponse.ok()).toBeTruthy();
     const payload = await documentResponse.json() as { data: { url: string; expires_at: string } };
     expect(payload.data.url).toContain(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}/download`);
     expect(payload.data.url).toContain('signature=');
     expect(payload.data.url).not.toContain('verification_private');
     expect(accessRequest.headers()['authorization']).toBeUndefined();
-    await expect.poll(() => popup.url()).toContain('/api/v1/admin/verifications/');
-    expect(popup.url()).toContain('/download');
-    expect(popup.url()).toContain('signature=');
+    expect(popupResponse.status()).toBe(200);
+    expect(popupResponse.headers()['content-type']).toContain('application/pdf');
+    expect(popupResponse.headers()['cache-control']).toContain('no-store');
     expect(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }))).toEqual({ local: [], session: [] });
     expect(await page.locator('body').innerText()).not.toContain('verification_private');
     await popup.close();
@@ -104,7 +98,10 @@ test.describe('EC-016 admin console', () => {
     await expect(page).toHaveURL(/\/forbidden$/);
     await expect(page.getByText('EC Admin')).toHaveCount(0);
     await page.getByRole('link', { name: 'Return home' }).click();
+    const logoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/logout'));
     await page.getByRole('button', { name: 'Sign out' }).click();
+    expect((await logoutResponse).ok()).toBeTruthy();
+    await expect(page).toHaveURL(/\/login/);
     await login(page, fixtures.businessAdmin);
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/forbidden$/);
