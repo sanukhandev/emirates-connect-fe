@@ -9,10 +9,12 @@ import { canEditBusiness } from '../../core/business/business.permissions';
 import { PostService } from '../../core/post/post.service';
 import { FollowControlComponent } from '../../shared/components/follow-control.component';
 import { PostCardComponent } from '../../shared/components/post-card.component';
+import { ReportDialogComponent } from '../../shared/components/report-dialog.component';
+import { ReportTargetType } from '../../core/report/report.models';
 
 @Component({
   selector: 'app-business-page',
-  imports: [RouterLink, TitleCasePipe, FollowControlComponent, PostCardComponent],
+  imports: [RouterLink, TitleCasePipe, FollowControlComponent, PostCardComponent, ReportDialogComponent],
   template: `
     <main class="min-h-screen bg-canvas px-4 py-6 text-content-primary sm:px-6 lg:px-8">
       <div class="mx-auto max-w-6xl">
@@ -26,7 +28,7 @@ import { PostCardComponent } from '../../shared/components/post-card.component';
               <div class="-mt-12 flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border-4 border-surface-card bg-brand-primary text-2xl font-bold text-white">@if (value.logo_url) { <img [src]="value.logo_url" [alt]="value.name + ' logo'" class="h-full w-full object-cover" /> } @else { {{ initials(value.name) }} }</div>
               <div class="mt-5 flex flex-wrap items-start justify-between gap-4">
                 <div><h1 class="flex flex-wrap items-center gap-2 text-3xl font-bold">{{ value.name }} @if (value.is_verified) { <span class="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong" aria-label="Verified business">✓ Verified</span> }</h1><p class="mt-2 text-lg text-content-secondary">{{ value.tagline }}</p><p class="mt-2 text-sm text-content-muted">{{ value.emirate | titlecase }} · {{ value.industry | titlecase }}</p></div>
-                <div class="flex flex-wrap gap-2">@if (value.status === 'active') { <app-follow-control targetType="business" [targetId]="value.id" [targetSlug]="value.slug" [targetLabel]="value.name" [isFollowing]="value.is_following ?? false" [followersCount]="value.followers_count ?? 0" (stateChange)="updateFollow($event)" /> } @if (canEdit(value.current_user_role)) { @if (value.is_verified) { <span class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium text-content-secondary">Verified</span> } @else { <a [routerLink]="['/businesses', value.slug, 'verification']" class="rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Verify business</a> }<a [routerLink]="['/businesses', value.slug, 'edit']" class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium hover:border-brand-primary">Edit Business</a><a [routerLink]="['/businesses', value.slug, 'members']" class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium hover:border-brand-primary">Manage Members</a> }</div>
+                <div class="flex flex-wrap gap-2">@if (value.status === 'active') { <app-follow-control targetType="business" [targetId]="value.id" [targetSlug]="value.slug" [targetLabel]="value.name" [isFollowing]="value.is_following ?? false" [followersCount]="value.followers_count ?? 0" (stateChange)="updateFollow($event)" /> @if (!canEdit(value.current_user_role)) { <button type="button" class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium hover:border-brand-primary" (click)="openReport('business', value.id, value.name)">Report business</button> } } @if (canEdit(value.current_user_role)) { @if (value.is_verified) { <span class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium text-content-secondary">Verified</span> } @else { <a [routerLink]="['/businesses', value.slug, 'verification']" class="rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Verify business</a> }<a [routerLink]="['/businesses', value.slug, 'edit']" class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium hover:border-brand-primary">Edit Business</a><a [routerLink]="['/businesses', value.slug, 'members']" class="rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium hover:border-brand-primary">Manage Members</a> }</div>
               </div>
               <div class="mt-5"><a [routerLink]="['/businesses', value.slug, 'followers']" class="rounded-xl border border-border-subtle px-3 py-2 text-sm hover:border-brand-primary">{{ value.followers_count ?? 0 }} followers</a></div>
               <div class="mt-8 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]"><article class="rounded-2xl border border-border-subtle p-5"><h2 class="text-lg font-semibold">About</h2><p class="mt-3 whitespace-pre-line leading-7 text-content-secondary">{{ value.description || 'No business description added yet.' }}</p></article><article class="rounded-2xl border border-border-subtle p-5"><h2 class="text-lg font-semibold">Contact</h2><dl class="mt-4 space-y-3 text-sm">@if (safeUrl(value.website_url); as website) { <div><dt class="text-content-muted">Website</dt><dd><a [href]="website" target="_blank" rel="noopener noreferrer" class="break-all text-brand-strong hover:underline">{{ website }}</a></dd></div> } @if (value.email) { <div><dt class="text-content-muted">Email</dt><dd><a [href]="'mailto:' + value.email" class="break-all text-brand-strong hover:underline">{{ value.email }}</a></dd></div> } @if (value.phone) { <div><dt class="text-content-muted">Phone</dt><dd><a [href]="'tel:' + value.phone" class="text-brand-strong hover:underline">{{ value.phone }}</a></dd></div> } @if (!value.website_url && !value.email && !value.phone) { <p class="text-content-secondary">No contact details added.</p> }</dl></article></div>
@@ -35,7 +37,9 @@ import { PostCardComponent } from '../../shared/components/post-card.component';
           </section>
         }
       </div>
+      @if (message()) { <p class="mt-4 rounded-xl bg-status-success/10 p-3 text-sm text-status-success" role="status">{{ message() }}</p> }
     </main>
+    @if (reportTarget(); as target) { <app-report-dialog [targetType]="target.type" [targetId]="target.id" [targetLabel]="target.label" (closed)="closeReport($event)" /> }
   `,
 })
 export class BusinessPageComponent {
@@ -44,6 +48,8 @@ export class BusinessPageComponent {
   readonly error = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  readonly reportTarget = signal<{ type: ReportTargetType; id: number; label: string } | null>(null);
+  readonly message = signal('');
 
   constructor() {
     const slug = this.route.snapshot.paramMap.get('slug');
@@ -66,6 +72,9 @@ export class BusinessPageComponent {
   initials(name: string): string {
     return name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
+
+  openReport(type: ReportTargetType, id: number, label: string): void { this.reportTarget.set({ type, id, label }); }
+  closeReport(result: 'submitted' | 'cancelled'): void { this.reportTarget.set(null); if (result === 'submitted') this.message.set('Report submitted.'); }
 
   safeUrl(value: string | null): string | null {
     if (!value) return null;

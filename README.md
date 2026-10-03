@@ -132,6 +132,12 @@ The authenticated notification center is available at `/notifications`. The feed
 
 EC-014 notifications are in-app only. Push, email, SMS and WebSocket delivery are not implemented.
 
+## Reporting
+
+Authenticated users can report visible users, businesses, posts, comments, and reels from their existing action surfaces. The shared report dialog uses the backend reason enum, requires details for `Other`, and limits details to 2000 characters. Reports use the existing Sanctum/XSRF session and show safe success, duplicate, unavailable-target, validation, rate-limit, and generic error states.
+
+Reporting is user-facing only in EC-015-FE. System-admin review, moderation actions, and audit viewing belong to EC-016; no reporter IDs, moderator metadata, report counts, or moderation badges are rendered.
+
 ## Reels
 
 ```text
