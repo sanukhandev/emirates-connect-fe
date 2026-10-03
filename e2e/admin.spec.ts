@@ -15,8 +15,8 @@ async function login(page: Page, account: { email: string; password: string }): 
 
 test.describe('EC-016 admin console', () => {
   test.beforeAll(() => { fixtures = provisionAdminFixtures(); });
-  test.beforeEach(async ({ page }) => {
-    await page.route('**/*', async (route) => {
+  test.beforeEach(async ({ context }) => {
+    await context.route('**/*', async (route) => {
       const url = route.request().url();
       if (url.startsWith('http://localhost:8000')) await route.continue({ url: url.replace('http://localhost:8000', 'http://127.0.0.1:8001') });
       else await route.continue();
@@ -35,6 +35,29 @@ test.describe('EC-016 admin console', () => {
     await expect(page).toHaveURL(/status=pending/);
     await page.getByRole('link', { name: 'Open' }).first().click();
     await expect(page.getByText(/request #/)).toBeVisible();
+  });
+
+  test('system admin opens a verification document through a fresh signed URL', async ({ page }) => {
+    await login(page, fixtures.admin);
+    await page.goto(`/admin/verifications/${fixtures.verificationUserId}`);
+    await expect(page.getByRole('heading', { name: fixtures.marker + ' Author' })).toBeVisible();
+    const documentResponsePromise = page.waitForResponse((response) => response.url().endsWith(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}`));
+    const popupPromise = page.waitForEvent('popup');
+    const accessRequestPromise = page.waitForRequest((request) => request.url().includes(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}`));
+    await page.getByRole('button', { name: 'Open' }).click();
+    const [documentResponse, popup, accessRequest] = await Promise.all([documentResponsePromise, popupPromise, accessRequestPromise]);
+    expect(documentResponse.ok()).toBeTruthy();
+    const payload = await documentResponse.json() as { data: { url: string; expires_at: string } };
+    expect(payload.data.url).toContain(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}/download`);
+    expect(payload.data.url).toContain('signature=');
+    expect(payload.data.url).not.toContain('verification_private');
+    expect(accessRequest.headers()['authorization']).toBeUndefined();
+    await expect.poll(() => popup.url()).toContain('/api/v1/admin/verifications/');
+    expect(popup.url()).toContain('/download');
+    expect(popup.url()).toContain('signature=');
+    expect(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }))).toEqual({ local: [], session: [] });
+    expect(await page.locator('body').innerText()).not.toContain('verification_private');
+    await popup.close();
   });
 
   test('admin filters, audits, and moderation targets render safely', async ({ page }) => {
