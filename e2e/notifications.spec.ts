@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 import { createTestUser } from './business/helpers';
 
+const apiBaseUrl = process.env.E2E_API_BASE_URL ?? 'http://localhost:8000/api/v1';
+
 test.describe('EC-014 notifications', () => {
   test.setTimeout(180_000);
 
@@ -20,6 +22,10 @@ test.describe('EC-014 notifications', () => {
     await secondActorPage.goto(`/users/${target.userId}`);
     await secondActorPage.getByRole('button', { name: 'Follow' }).click();
 
+    await expect.poll(async () => targetPage.evaluate(async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/notifications/unread-count`, { credentials: 'include' });
+      return (await response.json() as { count: number }).count;
+    }, apiBaseUrl), { timeout: 30_000 }).toBe(2);
     await targetPage.goto('/');
     await expect(targetPage.getByRole('link', { name: /Notifications, 2 unread/ })).toBeVisible();
     await targetPage.goto('/notifications');
@@ -30,9 +36,12 @@ test.describe('EC-014 notifications', () => {
 
     await targetPage.goBack();
     await expect(targetPage).toHaveURL(/\/notifications/);
+    const markAllResponse = targetPage.waitForResponse((response) => response.url().endsWith('/api/v1/notifications/read-all') && response.request().method() === 'POST');
     await targetPage.getByRole('button', { name: 'Mark all as read' }).click();
+    expect((await markAllResponse).ok()).toBeTruthy();
     await expect(targetPage.getByRole('button', { name: 'Mark all as read' })).toHaveCount(0);
-    await expect(targetPage.getByRole('link', { name: 'Notifications' })).toBeVisible();
+    await targetPage.goto('/notifications?unread=true');
+    await expect(targetPage.getByText('You’re all caught up.')).toBeVisible();
     await secondActorContext.close();
     await targetContext.close();
   });

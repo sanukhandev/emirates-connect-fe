@@ -66,4 +66,16 @@ describe('NotificationService', () => {
     expect(service.nextCursor()).toBeNull();
     http.expectOne(`${environment.apiBaseUrl}/notifications/unread-count`).flush({ count: 0 });
   });
+
+  it('ignores an unread-count response that started before mark-all', () => {
+    const authState = TestBed.inject(AuthStateService);
+    authState.setUser({ id: 1 } as never);
+    TestBed.flushEffects();
+    service.loadInitial();
+    http.expectOne((request) => request.url === `${environment.apiBaseUrl}/notifications`).flush(page([notification(1)], null));
+    service.markAllRead().subscribe();
+    http.expectOne(`${environment.apiBaseUrl}/notifications/read-all`).flush({ updated: 1 });
+    http.expectOne(`${environment.apiBaseUrl}/notifications/unread-count`).flush({ count: 3 });
+    expect(service.unreadCount()).toBe(0);
+  });
 });

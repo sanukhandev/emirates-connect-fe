@@ -62,7 +62,10 @@ export class NotificationsPageComponent {
     this.markingAll.set(true);
     this.notifications.markAllRead().subscribe({
       error: () => { this.actionError.set('Unable to mark notifications as read.'); this.markingAll.set(false); },
-      complete: () => this.markingAll.set(false),
+      complete: () => {
+        if (this.unreadOnly()) this.notifications.loadInitial(true);
+        this.markingAll.set(false);
+      },
     });
   }
 

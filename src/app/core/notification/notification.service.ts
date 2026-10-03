@@ -11,6 +11,7 @@ export class NotificationService {
   private readonly http = inject(HttpClient);
   private readonly authState = inject(AuthStateService);
   private requestVersion = 0;
+  private unreadRequestVersion = 0;
   private previousUserId: number | null | undefined;
 
   readonly notifications = signal<Notification[]>([]);
@@ -69,13 +70,15 @@ export class NotificationService {
 
   refreshUnreadCount(): void {
     if (!this.authState.currentUser()) return;
+    const version = ++this.unreadRequestVersion;
     this.http.get<{ count: number }>(`${environment.apiBaseUrl}/notifications/unread-count`).subscribe({
-      next: (response) => this.unreadCount.set(response.count),
+      next: (response) => { if (version === this.unreadRequestVersion) this.unreadCount.set(response.count); },
     });
   }
 
   markRead(notification: Notification): Observable<Notification> {
     if (notification.read_at) return of(notification);
+    this.unreadRequestVersion += 1;
     const previous = this.notifications();
     this.notifications.update((items) => items.map((item) => item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item));
     this.unreadCount.update((count) => Math.max(0, count - 1));
@@ -90,6 +93,7 @@ export class NotificationService {
   }
 
   markAllRead(): Observable<{ updated: number }> {
+    this.unreadRequestVersion += 1;
     const previous = this.notifications();
     this.notifications.update((items) => items.map((item) => ({ ...item, read_at: item.read_at ?? new Date().toISOString() })));
     const previousCount = this.unreadCount();
@@ -105,6 +109,7 @@ export class NotificationService {
 
   reset(): void {
     this.requestVersion += 1;
+    this.unreadRequestVersion += 1;
     this.notifications.set([]);
     this.nextCursor.set(null);
     this.unreadCount.set(0);
