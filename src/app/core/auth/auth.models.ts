@@ -28,6 +28,7 @@ export interface User {
   following_count?: number;
   is_following?: boolean;
   is_verified?: boolean;
+  is_system_admin?: boolean;
   profile?: UserProfile | null;
 }
 

@@ -138,6 +138,22 @@ Authenticated users can report visible users, businesses, posts, comments, and r
 
 Reporting is user-facing only in EC-015-FE. System-admin review, moderation actions, and audit viewing belong to EC-016; no reporter IDs, moderator metadata, report counts, or moderation badges are rendered.
 
+## Admin console
+
+The platform admin console is available under `/admin` to authenticated, active system administrators only. Business owner, admin, and editor roles do not grant access.
+
+```text
+/admin                         Dashboard
+/admin/verifications           Verification queue and review actions
+/admin/reports                 Moderation/report queue and actions
+/admin/users                   User administration
+/admin/businesses              Business administration
+/admin/audit/verifications     Verification audit history
+/admin/audit/moderation        Moderation audit history
+```
+
+The UI uses the existing Sanctum/XSRF session and the EC-016 admin APIs. It does not add bearer tokens, impersonation, password administration, generic database editing, or bulk destructive operations. Admin data is loaded from the backend and is not retained after logout or account switching.
+
 ## Reels
 
 ```text

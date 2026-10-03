@@ -3,8 +3,11 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { onboardingGuard, onboardingPageGuard } from './core/guards/onboarding.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  { path: 'forbidden', loadComponent: () => import('./features/forbidden.component').then((component) => component.ForbiddenComponent) },
+  ...['admin', 'admin/verifications/:id', 'admin/verifications', 'admin/reports/:id', 'admin/reports', 'admin/users/:id', 'admin/users', 'admin/businesses/:id', 'admin/businesses', 'admin/audit/verifications', 'admin/audit/moderation'].map((path) => ({ path, canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin-console.component').then((component) => component.AdminConsoleComponent) })),
   {
     path: '',
     canActivate: [authGuard, onboardingGuard],

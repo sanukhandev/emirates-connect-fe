@@ -1,0 +1,16 @@
+export type AdminStatus = 'pending' | 'approved' | 'rejected' | 'dismissed' | 'actioned' | 'active' | 'inactive' | 'suspended' | 'disabled';
+export type AdminSubjectType = 'user' | 'business';
+export type AdminTargetType = 'user' | 'business' | 'post' | 'comment' | 'reel';
+export type AdminPageResponse<T> = { data: T[]; meta: { current_page: number; last_page: number; per_page: number; total: number }; links: { first?: string | null; last?: string | null; prev?: string | null; next?: string | null } };
+
+export interface AdminDashboard { users: { total: number; suspended: number }; businesses: { total: number; suspended: number }; content: { published_posts: number; published_reels: number }; queues: { pending_verifications: number; pending_reports: number } }
+export interface VerificationSubject { type: AdminSubjectType; id: number; name: string; slug?: string; is_verified: boolean }
+export interface VerificationDocument { id: number; document_type: string; original_filename: string | null; mime_type: string; size: number; uploaded_at: string | null }
+export interface VerificationAudit { action: string; from_status: string | null; to_status: string | null; actor?: { id: number; display_name: string } | null; metadata?: Record<string, unknown> | null; created_at: string }
+export interface AdminVerification { id: number; subject_type: AdminSubjectType; subject_id: number; subject: VerificationSubject | null; status: 'pending' | 'approved' | 'rejected'; data: Record<string, unknown> | null; submitted_at: string | null; reviewed_at: string | null; rejection_reason: string | null; documents: VerificationDocument[]; audit?: VerificationAudit[] }
+export interface AdminReportTarget { type: AdminTargetType; id: number; display_name?: string; name?: string; slug?: string; body?: string; caption?: string; post_id?: number; status?: string; created_at?: string; published_at?: string }
+export interface AdminReport { id: number; target_type: AdminTargetType; target_id: number; reason: string; details: string | null; status: 'pending' | 'dismissed' | 'actioned' | 'reviewed'; moderation_action: string | null; reporter: { type: 'user'; id: number; display_name: string } | null; reviewer: { type: 'user'; id: number; display_name: string } | null; target: AdminReportTarget | null; reviewed_at: string | null; resolution: string | null; created_at: string; updated_at: string }
+export interface ModerationAudit { id: number; report_id: number | null; action: string; target_type: AdminTargetType; target_id: number; actor: { id: number; display_name: string } | null; metadata: Record<string, unknown> | null; created_at: string }
+export interface AdminUser { id: number; name: string; display_name: string | null; email: string; account_status: 'pending' | 'active' | 'suspended' | 'disabled'; is_verified: boolean; is_system_admin: boolean; created_at: string; updated_at: string; counts: { posts: number | null; reels: number | null } }
+export interface AdminBusiness { id: number; name: string; slug: string; status: 'active' | 'inactive' | 'suspended'; is_verified: boolean; owner: { id: number; display_name: string } | null; member_count: number | null; counts: { posts: number | null; reels: number | null }; created_at: string; updated_at: string }
+export interface SignedDocumentUrl { url: string; expires_at: string }
