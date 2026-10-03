@@ -19,7 +19,7 @@ import { ReportService } from '../../core/report/report.service';
           <label class="block text-sm font-medium" for="report-details">Details <span class="font-normal text-content-muted">{{ form.controls.details.value.length }}/2000</span><textarea id="report-details" formControlName="details" maxlength="2000" rows="5" class="auth-input mt-2 resize-y" [attr.aria-describedby]="form.controls.details.invalid && form.controls.details.touched ? 'report-details-error' : null" placeholder="Add context if useful"></textarea></label>
           @if (form.controls.details.touched && form.controls.details.invalid) { <p id="report-details-error" class="text-sm text-status-danger" role="alert">Details are required for Other and must be 2000 characters or fewer.</p> }
           @if (error()) { <p class="rounded-xl bg-status-danger/10 p-3 text-sm text-status-danger" role="alert" aria-live="polite">{{ error() }}</p> }
-          <div class="flex flex-wrap justify-end gap-3"><button type="button" class="rounded-xl border border-border-subtle px-4 py-3 text-sm font-medium" (click)="close()" [disabled]="submitting()">Cancel</button><button type="submit" class="rounded-xl bg-brand-primary px-4 py-3 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-wait disabled:opacity-60" [disabled]="submitting()">{{ submitting() ? 'Submitting…' : 'Submit report' }}</button></div>
+          <div class="flex flex-wrap justify-end gap-3"><button type="button" class="rounded-xl border border-border-subtle px-4 py-3 text-sm font-medium" (click)="close()" [disabled]="submitting()">Cancel</button><button type="submit" class="rounded-xl bg-brand-primary px-4 py-3 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-wait disabled:opacity-60" [disabled]="submitting() || form.invalid">{{ submitting() ? 'Submitting…' : 'Submit report' }}</button></div>
         </form>
       </section>
     </div>
@@ -40,8 +40,8 @@ export class ReportDialogComponent {
   constructor() {
     this.form.controls.reason.valueChanges.pipe(takeUntilDestroyed()).subscribe((reason) => {
       const details = this.form.controls.details;
-      if (reason === 'other') details.addValidators(Validators.required);
-      else details.removeValidators(Validators.required);
+      if (reason === 'other') { details.addValidators(Validators.required); details.markAsTouched(); }
+      else { details.removeValidators(Validators.required); details.markAsUntouched(); }
       details.updateValueAndValidity({ emitEvent: false });
     });
   }
