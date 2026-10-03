@@ -53,8 +53,8 @@ describe('authentication interceptors', () => {
     expect(state.currentUser()).toBeNull();
   });
 
-  it('retries one 419 request after refreshing the CSRF cookie', async () => {
-    const result = firstValueFrom(httpClient.post(`${environment.apiBaseUrl}/me`, {}));
+  it('retries one safe 419 request after refreshing the CSRF cookie', async () => {
+    const result = firstValueFrom(httpClient.get(`${environment.apiBaseUrl}/me`));
     http.expectOne(`${environment.apiBaseUrl}/me`).flush({}, { status: 419, statusText: 'Page Expired' });
     const csrf = http.expectOne(`${environment.backendOrigin}/sanctum/csrf-cookie`);
     expect(csrf.request.withCredentials).toBe(true);
@@ -63,5 +63,13 @@ describe('authentication interceptors', () => {
     retry?.flush({ data: {} });
 
     await expect(result).resolves.toEqual({ data: {} });
+  });
+
+  it('does not replay a mutation after a 419 response', async () => {
+    const result = firstValueFrom(httpClient.post(`${environment.apiBaseUrl}/me`, {}));
+    http.expectOne(`${environment.apiBaseUrl}/me`).flush({}, { status: 419, statusText: 'Page Expired' });
+
+    await expect(result).rejects.toMatchObject({ status: 419 });
+    http.expectNone(`${environment.backendOrigin}/sanctum/csrf-cookie`);
   });
 });

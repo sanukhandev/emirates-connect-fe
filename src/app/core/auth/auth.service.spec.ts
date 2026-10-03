@@ -78,4 +78,17 @@ describe('AuthService', () => {
     await expect(result).resolves.toBeUndefined();
     expect(service.currentUser()).toBeNull();
   });
+
+  it('does not let a stale initialization response restore a logged-out user', async () => {
+    const initialization = firstValueFrom(service.initialize());
+    const initializationRequest = http.expectOne(`${environment.apiBaseUrl}/me`);
+
+    const logout = firstValueFrom(service.logout());
+    http.expectOne(`${environment.apiBaseUrl}/auth/logout`).flush(null);
+    await expect(logout).resolves.toBeUndefined();
+
+    initializationRequest.flush({ data: user });
+    await expect(initialization).resolves.toBeUndefined();
+    expect(service.currentUser()).toBeNull();
+  });
 });

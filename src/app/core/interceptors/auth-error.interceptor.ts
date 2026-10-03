@@ -15,7 +15,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         state.clear();
       }
 
-      if (error.status !== 419 || request.context.get(csrfRetried) || !request.url.startsWith(environment.apiBaseUrl)) {
+      if (error.status !== 419 || request.context.get(csrfRetried) || !request.url.startsWith(environment.apiBaseUrl) || !isSafeRetryMethod(request.method)) {
         return throwError(() => error);
       }
 
@@ -33,6 +33,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
     }),
   );
 };
+
+function isSafeRetryMethod(method: string): boolean {
+  return method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+}
 
 function injectState(): AuthStateService {
   return inject(AuthStateService);

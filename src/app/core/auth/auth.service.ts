@@ -39,10 +39,17 @@ export class AuthService {
     }
 
     this.state.setInitializing(true);
+    const requestVersion = this.state.version();
     this.initialization$ = this.http.get<ApiResponse<User>>(`${environment.apiBaseUrl}/me`).pipe(
-      tap((response) => this.state.setUser(response.data)),
+      tap((response) => {
+        if (this.state.version() === requestVersion) {
+          this.state.setUser(response.data);
+        }
+      }),
       catchError(() => {
-        this.state.clear();
+        if (this.state.version() === requestVersion) {
+          this.state.clear();
+        }
         return of(null);
       }),
       map(() => undefined),

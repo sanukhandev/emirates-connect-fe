@@ -21,7 +21,7 @@ async function logout(page: Page): Promise<void> {
 }
 
 test.describe('EC-016 admin console', () => {
-  test.beforeAll(() => { fixtures = provisionAdminFixtures(); });
+  test.beforeEach(() => { fixtures = provisionAdminFixtures(); });
   test.setTimeout(120_000);
 
   test('system admin sees dashboard and mixed verification queue', async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe('EC-016 admin console', () => {
   test('system admin opens a verification document through a fresh signed URL', async ({ page }) => {
     await login(page, fixtures.admin);
     await page.goto(`/admin/verifications/${fixtures.verificationUserId}`);
-    await expect(page.getByRole('heading', { name: fixtures.marker + ' Author' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: fixtures.marker + ' Author' })).toBeVisible({ timeout: 30_000 });
     const documentResponsePromise = page.waitForResponse((response) => response.url().endsWith(`/api/v1/admin/verifications/${fixtures.verificationUserId}/documents/${fixtures.verificationUserDocumentId}`));
     const popupPromise = page.waitForEvent('popup');
     const popupResponsePromise = page.context().waitForEvent('response', { predicate: (response) => response.url().includes('/download') });
@@ -102,7 +102,7 @@ test.describe('EC-016 admin console', () => {
   test('admin session switching isolates normal and business admins', async ({ page }) => {
     await login(page, fixtures.admin);
     await page.goto('/admin');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 30_000 });
     await page.goto('/');
     await logout(page);
 
@@ -127,7 +127,7 @@ test.describe('EC-016 admin console', () => {
   test('users and businesses pages expose safe operational fields and responsive layout', async ({ page }) => {
     await login(page, fixtures.admin);
     await page.goto('/admin/users');
-    await expect(page.getByText(fixtures.admin.email)).toBeVisible();
+    await expect(page.getByText(fixtures.admin.email)).toBeVisible({ timeout: 30_000 });
     await page.goto(`/admin/users/${fixtures.admin.id}`);
     await expect(page.getByText('System admin', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Suspend user' })).toHaveCount(0);

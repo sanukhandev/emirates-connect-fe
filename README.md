@@ -154,6 +154,12 @@ The platform admin console is available under `/admin` to authenticated, active 
 
 The UI uses the existing Sanctum/XSRF session and the EC-016 admin APIs. It does not add bearer tokens, impersonation, password administration, generic database editing, or bulk destructive operations. Admin data is loaded from the backend and is not retained after logout or account switching.
 
+## Frontend security baseline
+
+Browser authentication uses the Laravel Sanctum session and XSRF cookie. The frontend does not store bearer/JWT credentials, signed verification URLs, private storage paths, or admin API payloads in browser storage. User-generated content is rendered as text through Angular bindings; private verification documents are opened only from short-lived URLs returned by the system-admin API.
+
+Production builds disable source maps and use the production environment replacement. Deployment must still provide HTTPS, secure HttpOnly cookies, explicit CORS, CSP/edge security headers, and private hosting for any build artifacts.
+
 ## Reels
 
 ```text
