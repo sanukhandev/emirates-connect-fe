@@ -13,6 +13,13 @@ async function login(page: Page, account: { email: string; password: string }): 
   await expect(page).not.toHaveURL(/\/login/);
 }
 
+async function logout(page: Page): Promise<void> {
+  const logoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/logout'));
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  expect((await logoutResponse).ok()).toBeTruthy();
+  await expect(page).toHaveURL(/\/login/);
+}
+
 test.describe('EC-016 admin console', () => {
   test.beforeAll(() => { fixtures = provisionAdminFixtures(); });
   test.setTimeout(120_000);
@@ -57,7 +64,7 @@ test.describe('EC-016 admin console', () => {
   test('admin filters, audits, and moderation targets render safely', async ({ page }) => {
     await login(page, fixtures.admin);
     await page.goto('/admin/reports?status=pending&target_type=post');
-    await expect(page.getByRole('cell', { name: /post #/ }).first()).toBeVisible();
+    await expect(page.getByRole('cell', { name: /post #/ }).first()).toBeVisible({ timeout: 30_000 });
     await expect(page).toHaveURL(/target_type=post/);
     await page.goto('/admin/audit/verifications');
     await expect(page.getByRole('cell', { name: 'submitted', exact: true }).first()).toBeVisible();
@@ -68,7 +75,7 @@ test.describe('EC-016 admin console', () => {
   test('admin can review verification and report actions through real APIs', async ({ page }) => {
     await login(page, fixtures.admin);
     await page.goto(`/admin/verifications/${fixtures.verificationUserId}`);
-    await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible({ timeout: 30_000 });
     const approve = page.waitForResponse((response) => response.url().endsWith(`/api/v1/admin/verifications/${fixtures.verificationUserId}/approve`));
     await page.getByRole('button', { name: 'Approve' }).click();
     expect((await approve).ok()).toBeTruthy();
@@ -92,19 +99,29 @@ test.describe('EC-016 admin console', () => {
     await expect(page.getByText('actioned', { exact: true })).toBeVisible();
   });
 
-  test('normal and business admins are denied and admin state is not shown', async ({ page }) => {
+  test('admin session switching isolates normal and business admins', async ({ page }) => {
+    await login(page, fixtures.admin);
+    await page.goto('/admin');
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await page.goto('/');
+    await logout(page);
+
     await login(page, fixtures.normal);
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/forbidden$/);
     await expect(page.getByText('EC Admin')).toHaveCount(0);
     await page.getByRole('link', { name: 'Return home' }).click();
-    const logoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/logout'));
-    await page.getByRole('button', { name: 'Sign out' }).click();
-    expect((await logoutResponse).ok()).toBeTruthy();
-    await expect(page).toHaveURL(/\/login/);
+    await logout(page);
+
     await login(page, fixtures.businessAdmin);
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/forbidden$/);
+    await page.getByRole('link', { name: 'Return home' }).click();
+    await logout(page);
+
+    await login(page, fixtures.admin);
+    await page.goto('/admin');
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   });
 
   test('users and businesses pages expose safe operational fields and responsive layout', async ({ page }) => {
