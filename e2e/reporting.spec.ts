@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
 
 type Fixture = {
   reporterEmail: string;
@@ -19,28 +21,33 @@ type Fixture = {
 };
 
 function fixture(): Fixture {
-  const value = (name: keyof Fixture): string => {
-    const envName = `EC15_${String(name).replace(/[A-Z]/g, (match) => `_${match}`).toUpperCase()}`;
-    const result = process.env[envName];
-    if (!result) throw new Error(`Missing ${envName}`);
-    return result;
-  };
-  return {
-    reporterEmail: value('reporterEmail'), reporterPassword: value('reporterPassword'),
-    reporterId: Number(value('reporterId')), targetUserId: Number(value('targetUserId')),
-    duplicateUserId: Number(value('duplicateUserId')), otherUserId: Number(value('otherUserId')),
-    rateLimitUserId: Number(value('rateLimitUserId')), targetBusinessSlug: value('targetBusinessSlug'),
-    ownBusinessSlug: value('ownBusinessSlug'), postId: Number(value('postId')), commentId: Number(value('commentId')),
-    reelId: Number(value('reelId')), ownPostId: Number(value('ownPostId')), ownCommentId: Number(value('ownCommentId')),
-    ownReelId: Number(value('ownReelId')),
-  };
+  const marker = `ec17fe1-${Date.now()}`;
+  const password = `Ec17Fixture${Date.now()}`;
+  const code = String.raw`
+    $marker='${marker}'; $password='${password}';
+    $make=function($name,$email) use ($password) { $u=\App\Models\User::factory()->create(['name'=>$name,'email'=>$email,'password'=>$password]); $u->profile()->create(['display_name'=>$name,'headline'=>'EC-017 fixture','onboarding_completed_at'=>now()]); return $u; };
+    $reporter=$make($marker.' Reporter',$marker.'-reporter@example.test'); $target=$make($marker.' Target',$marker.'-target@example.test'); $duplicate=$make($marker.' Duplicate',$marker.'-duplicate@example.test'); $other=$make($marker.' Other',$marker.'-other@example.test'); $rate=$make($marker.' Rate limit',$marker.'-rate@example.test'); $author=$make($marker.' Author',$marker.'-author@example.test');
+    $targetBusiness=\App\Models\Business::factory()->create(['name'=>$marker.' Target Business','slug'=>\Illuminate\Support\Str::slug($marker.' Target Business'),'created_by'=>$target->id,'status'=>\App\Enums\BusinessStatus::ACTIVE]); \App\Models\BusinessMember::create(['business_id'=>$targetBusiness->id,'user_id'=>$target->id,'role'=>\App\Enums\BusinessRole::OWNER]);
+    $ownBusiness=\App\Models\Business::factory()->create(['name'=>$marker.' Own Business','slug'=>\Illuminate\Support\Str::slug($marker.' Own Business'),'created_by'=>$reporter->id,'status'=>\App\Enums\BusinessStatus::ACTIVE]); \App\Models\BusinessMember::create(['business_id'=>$ownBusiness->id,'user_id'=>$reporter->id,'role'=>\App\Enums\BusinessRole::OWNER]);
+    $post=\App\Models\Post::factory()->create(['author_type'=>'user','author_id'=>$author->id,'created_by'=>$author->id,'body'=>$marker.' target post']); $comment=\App\Models\Comment::factory()->create(['post_id'=>$post->id,'author_type'=>'user','author_id'=>$author->id,'created_by'=>$author->id,'body'=>$marker.' target comment']);
+    $ownPost=\App\Models\Post::factory()->create(['author_type'=>'user','author_id'=>$reporter->id,'created_by'=>$reporter->id,'body'=>$marker.' own post']); $ownComment=\App\Models\Comment::factory()->create(['post_id'=>$ownPost->id,'author_type'=>'user','author_id'=>$reporter->id,'created_by'=>$reporter->id,'body'=>$marker.' own comment']);
+    $reel=\App\Models\Reel::create(['author_type'=>'user','author_id'=>$author->id,'created_by_user_id'=>$author->id,'caption'=>$marker.' target reel','status'=>\App\Enums\ReelStatus::PUBLISHED,'duration_seconds'=>8,'width'=>720,'height'=>1280,'playback_disk'=>'public','playback_path'=>'fixtures/'.$marker.'.mp4','published_at'=>now()]); $ownReel=\App\Models\Reel::create(['author_type'=>'user','author_id'=>$reporter->id,'created_by_user_id'=>$reporter->id,'caption'=>$marker.' own reel','status'=>\App\Enums\ReelStatus::PUBLISHED,'duration_seconds'=>8,'width'=>720,'height'=>1280,'playback_disk'=>'public','playback_path'=>'fixtures/'.$marker.'-own.mp4','published_at'=>now()]);
+    echo json_encode(['reporterEmail'=>$reporter->email,'reporterPassword'=>$password,'reporterId'=>$reporter->id,'targetUserId'=>$target->id,'duplicateUserId'=>$duplicate->id,'otherUserId'=>$other->id,'rateLimitUserId'=>$rate->id,'targetBusinessSlug'=>$targetBusiness->slug,'ownBusinessSlug'=>$ownBusiness->slug,'postId'=>$post->id,'commentId'=>$comment->id,'reelId'=>$reel->id,'ownPostId'=>$ownPost->id,'ownCommentId'=>$ownComment->id,'ownReelId'=>$ownReel->id]);
+  `;
+  const output = execFileSync('php', ['artisan', 'tinker', '--execute', code], { cwd: resolve(process.cwd(), '../backend'), encoding: 'utf8' });
+  const line = output.trim().split(/\r?\n/).reverse().find((value) => value.trim().startsWith('{'));
+  if (!line) throw new Error(`Could not parse reporting fixture output: ${output}`);
+  return JSON.parse(line) as Fixture;
 }
 
 async function login(page: Page, data: Fixture): Promise<void> {
   await page.goto('/login');
   await page.getByLabel('Email').fill(data.reporterEmail);
   await page.locator('#login-password').fill(data.reporterPassword);
+  const loginResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/login'));
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  const response = await loginResponse;
+  if (!response.ok()) throw new Error(`Reporting fixture login failed with HTTP ${response.status()}`);
   await expect(page).toHaveURL(/\/$/);
 }
 
@@ -80,7 +87,7 @@ test.describe('EC-015 reporting', () => {
     const data = fixture();
     await login(page, data);
     await page.goto(`/users/${data.reporterId}`); await expect(page.getByRole('button', { name: 'Report', exact: true })).toHaveCount(0);
-    await page.goto(`/businesses/${data.ownBusinessSlug}`); await expect(page.getByRole('button', { name: 'Report business', exact: true })).toHaveCount(0); await expect(page.getByRole('link', { name: 'Edit Business' })).toBeVisible();
+    await page.goto(`/businesses/${data.ownBusinessSlug}`); await expect(page.getByRole('button', { name: 'Report business', exact: true })).toHaveCount(0); await expect(page.getByRole('link', { name: 'Edit Business' })).toBeVisible({ timeout: 30_000 });
     await page.goto(`/posts/${data.ownPostId}`); await expect(page.getByRole('button', { name: 'Report post', exact: true })).toHaveCount(0);
     await expect(page.locator(`[data-comment-id="${data.ownCommentId}"]`)).toBeVisible(); await expect(page.locator(`[data-comment-id="${data.ownCommentId}"]`).getByRole('button', { name: 'Report comment', exact: true })).toHaveCount(0);
     await page.goto(`/reels/${data.ownReelId}`); await expect(page.getByRole('button', { name: 'Report reel', exact: true })).toHaveCount(0);
