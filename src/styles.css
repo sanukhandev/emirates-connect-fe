@@ -2,48 +2,84 @@
 @import 'tailwindcss';
 
 :root {
-  --ec-brand-primary: #9470f8;
-  --ec-brand-hover: #8057e8;
-  --ec-brand-strong: #593ba4;
-  --ec-brand-soft: #f0ebff;
-  --ec-canvas: #f8f7fa;
+  --ec-brand-50: #f7f4ff;
+  --ec-brand-100: #efe9ff;
+  --ec-brand-200: #dfd3ff;
+  --ec-brand-300: #c8b3ff;
+  --ec-brand-400: #ac8cff;
+  --ec-brand-500: #9470f8;
+  --ec-brand-600: #8057e8;
+  --ec-brand-700: #6d46ca;
+  --ec-brand-800: #593ba4;
+  --ec-brand-900: #4a3483;
+
+  --ec-brand-primary: var(--ec-brand-500);
+  --ec-brand-hover: var(--ec-brand-600);
+  --ec-brand-strong: var(--ec-brand-800);
+  --ec-brand-soft: var(--ec-brand-50);
+
+  --ec-canvas: #f7f7fa;
   --ec-surface-card: #ffffff;
-  --ec-surface-muted: #f1f0f4;
-  --ec-border-subtle: #e4e1ea;
-  --ec-content-primary: #27242d;
-  --ec-content-secondary: #6f6a78;
-  --ec-content-muted: #918b9c;
+  --ec-surface-secondary: #f3f4f7;
+  --ec-surface-muted: #f3f4f7;
+  --ec-border-subtle: #e8e8ee;
+
+  --ec-content-primary: #17171c;
+  --ec-content-secondary: #676773;
+  --ec-content-muted: #9696a2;
+
   --ec-status-success: #2f9e68;
   --ec-status-warning: #c78a2c;
   --ec-status-danger: #c94b5c;
 }
 
 @theme inline {
+  --color-brand-50: var(--ec-brand-50);
+  --color-brand-100: var(--ec-brand-100);
+  --color-brand-200: var(--ec-brand-200);
+  --color-brand-300: var(--ec-brand-300);
+  --color-brand-400: var(--ec-brand-400);
+  --color-brand-500: var(--ec-brand-500);
+  --color-brand-600: var(--ec-brand-600);
+  --color-brand-700: var(--ec-brand-700);
+  --color-brand-800: var(--ec-brand-800);
+  --color-brand-900: var(--ec-brand-900);
+
   --color-brand-primary: var(--ec-brand-primary);
   --color-brand-hover: var(--ec-brand-hover);
   --color-brand-strong: var(--ec-brand-strong);
   --color-brand-soft: var(--ec-brand-soft);
+
   --color-canvas: var(--ec-canvas);
   --color-surface-card: var(--ec-surface-card);
+  --color-surface-secondary: var(--ec-surface-secondary);
   --color-surface-muted: var(--ec-surface-muted);
   --color-border-subtle: var(--ec-border-subtle);
+
   --color-content-primary: var(--ec-content-primary);
   --color-content-secondary: var(--ec-content-secondary);
   --color-content-muted: var(--ec-content-muted);
+
   --color-status-success: var(--ec-status-success);
   --color-status-warning: var(--ec-status-warning);
   --color-status-danger: var(--ec-status-danger);
+
   --font-sans: 'Ubuntu', sans-serif;
-  --shadow-card: 0 12px 30px rgb(39 36 45 / 0.06);
+  --shadow-card: 0 4px 20px -2px rgb(23 23 28 / 0.04), 0 2px 6px -1px rgb(23 23 28 / 0.02);
+  --shadow-card-hover: 0 10px 28px -4px rgb(23 23 28 / 0.06), 0 4px 10px -2px rgb(23 23 28 / 0.03);
+  --shadow-elevated: 0 20px 40px -12px rgb(148 112 248 / 0.15);
 }
 
 html {
   font-family: 'Ubuntu', sans-serif;
-  background: var(--ec-canvas);
+  background-color: var(--ec-canvas);
+  color: var(--ec-content-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   margin: 0;
+  background-color: var(--ec-canvas);
 }
 
 .auth-input {

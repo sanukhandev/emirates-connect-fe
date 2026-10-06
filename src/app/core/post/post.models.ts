@@ -11,6 +11,8 @@ export interface UserPostAuthor {
   display_name: string | null;
   headline: string | null;
   avatar_url: string | null;
+  is_verified?: boolean;
+  location?: string | null;
 }
 
 export interface BusinessPostAuthor {
@@ -19,6 +21,9 @@ export interface BusinessPostAuthor {
   name: string;
   slug: string;
   logo_url: string | null;
+  is_verified?: boolean;
+  industry?: string | null;
+  location?: string | null;
 }
 
 export type PostAuthor = UserPostAuthor | BusinessPostAuthor;
@@ -33,6 +38,21 @@ export interface PostMedia {
   sort_order: number;
 }
 
+export interface PostPollOption {
+  id: number;
+  text: string;
+  votes: number;
+}
+
+export interface PostPoll {
+  question: string;
+  options: PostPollOption[];
+  total_votes: number;
+  user_voted_option_id?: number | null;
+  expires_at?: string;
+  days_remaining?: number;
+}
+
 export interface Post {
   id: number;
   body: string | null;
@@ -43,6 +63,11 @@ export interface Post {
   author: PostAuthor;
   media: PostMedia[];
   reactions?: ReactionSummary;
+  poll?: PostPoll;
+  tags?: string[];
+  shares_count?: number;
+  comments_count?: number;
+  is_saved?: boolean;
 }
 
 export interface CreatePostPayload {
