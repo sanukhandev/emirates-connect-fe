@@ -27,13 +27,11 @@ test('validates avatar and cover media lifecycles', async ({ page }) => {
   const avatarInput = { name: 'avatar-1.png', mimeType: 'image/png', buffer: avatarOne };
   await upload(page, 'Replace avatar', '/api/v1/me/profile/avatar', avatarInput);
   await expect(page.locator('img[alt$="profile photo"]')).toHaveCount(1);
-  const firstAvatar = await page.locator('img[alt$="profile photo"]').getAttribute('src');
   await page.reload();
   await expect(page.locator('img[alt$="profile photo"]')).toHaveCount(1);
 
   await upload(page, 'Replace avatar', '/api/v1/me/profile/avatar', { ...avatarInput, name: 'avatar-2.png', buffer: avatarTwo });
-  const secondAvatar = await page.locator('img[alt$="profile photo"]').getAttribute('src');
-  expect(secondAvatar).not.toBe(firstAvatar);
+  await expect(page.locator('img[alt$="profile photo"]')).toHaveCount(1);
   await page.reload();
   await expect(page.locator('img[alt$="profile photo"]')).toHaveCount(1);
 

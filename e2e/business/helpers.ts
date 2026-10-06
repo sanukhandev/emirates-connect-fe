@@ -1,4 +1,6 @@
 import { expect, Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
 
 export interface ProvisionedUser {
   email: string;
@@ -9,30 +11,24 @@ export interface ProvisionedUser {
 export async function createTestUser(page: Page, roleLabel: string): Promise<ProvisionedUser> {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const account = { email: `ec-e2e-${roleLabel}-${suffix}@example.test`, password: `E2e-${suffix}-Aa1!` };
-  await page.goto('/register');
-  await page.getByLabel('Name').fill(`EC005 ${roleLabel}`);
+  const code = String.raw`
+    $user=\App\Models\User::factory()->create(['name'=>'EC005 ${roleLabel}','email'=>'${account.email}','password'=>'${account.password}']);
+    $user->profile()->create(['display_name'=>'EC005 ${roleLabel}','headline'=>'Professional ${roleLabel}','job_title'=>'Manager','bio'=>'Automated ${roleLabel} profile.','website'=>'https://example.test','linkedin_url'=>'https://www.linkedin.com/in/ec005-${suffix}','onboarding_completed_at'=>now()]);
+    echo json_encode(['id'=>$user->id]);
+  `;
+  const output = execFileSync('php', ['artisan', 'tinker', '--execute', code], { cwd: resolve(process.cwd(), '../backend'), encoding: 'utf8' });
+  const line = output.trim().split(/\r?\n/).reverse().find((value) => value.trim().startsWith('{'));
+  if (!line) throw new Error(`Could not parse fixture output: ${output}`);
+  const fixture = JSON.parse(line) as { id: number };
+  await page.goto('/login');
   await page.getByLabel('Email').fill(account.email);
-  await page.getByLabel('Password', { exact: true }).fill(account.password);
-  await page.getByLabel('Confirm password').fill(account.password);
-  const industriesLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/meta/industries') && response.status() === 200);
-  const emiratesLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/meta/emirates') && response.status() === 200);
-  const profileLoaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/me/profile') && response.status() === 200);
-  await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page).toHaveURL(/\/onboarding$/, { timeout: 30_000 });
-  await Promise.all([industriesLoaded, emiratesLoaded, profileLoaded]);
-  await page.getByLabel('Display name').fill(`EC005 ${roleLabel}`);
-  await page.getByLabel('Headline').fill(`Professional ${roleLabel}`);
-  await page.getByLabel('Job title').fill('Manager');
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await page.locator('#onboarding-industry').selectOption({ index: 1 });
-  await page.locator('#onboarding-emirate').selectOption({ index: 1 });
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await page.getByLabel('Bio Optional').fill(`Automated ${roleLabel} profile.`);
-  await page.getByLabel('Website Optional').fill('https://example.test');
-  await page.getByLabel('LinkedIn profile Optional').fill(`https://www.linkedin.com/in/ec005-${suffix}`);
-  await page.getByRole('button', { name: 'Complete profile', exact: true }).click();
+  await page.locator('#login-password').fill(account.password);
+  const loginResponse = page.waitForResponse((response) => response.url().endsWith('/api/v1/auth/login') && response.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  expect((await loginResponse).ok()).toBeTruthy();
+  await page.goto('/profile');
   await expect(page).toHaveURL(/\/profile$/);
-  return { ...account, userId: await currentUserId(page) };
+  return { ...account, userId: fixture.id };
 }
 
 export async function createBusiness(page: Page, label = 'Business'): Promise<{ name: string; slug: string }> {
