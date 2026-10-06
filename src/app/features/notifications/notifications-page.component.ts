@@ -46,7 +46,6 @@ export class NotificationsPageComponent {
       const unread = params.get('unread') === 'true';
       this.unreadOnly.set(unread);
       this.notifications.loadInitial(unread);
-      this.notifications.refreshUnreadCount();
     });
   }
 
