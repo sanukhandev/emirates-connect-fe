@@ -18,28 +18,49 @@ import { PostService } from '../../core/post/post.service';
     >
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <!-- Header / Identity row -->
-        <div class="flex items-center justify-between gap-3 pb-3">
-          <div class="flex items-center gap-3">
-            <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-brand-100 font-bold text-brand-700 flex items-center justify-center text-xs">
-              @if (userAvatar()) {
-                <img [src]="userAvatar()" [alt]="authorLabel()" class="h-full w-full object-cover" />
+        <div class="flex items-start justify-between gap-3 pb-3">
+          <div class="relative flex items-center gap-3">
+            <!-- Clickable DP container: Post as feature triggers when clicked on DP -->
+            <label
+              for="post-author"
+              class="group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-brand-100 font-bold text-brand-700 transition hover:ring-2 hover:ring-brand-500/50"
+              title="Click DP to switch posting identity"
+            >
+              @if (currentAvatar()) {
+                <img [src]="currentAvatar()" [alt]="authorLabel()" class="h-full w-full object-cover" />
               } @else {
                 {{ initials(authorLabel()) }}
               }
-            </div>
+              <span class="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand-500 text-white shadow-xs transition group-hover:scale-110">
+                <svg class="h-2 w-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
 
-            <div class="min-w-0">
-              <label class="sr-only" for="post-author">Posting identity</label>
               <select
                 id="post-author"
                 formControlName="author"
-                class="rounded-lg border border-border-subtle bg-surface-secondary px-2.5 py-1 text-xs font-semibold text-content-primary hover:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                class="absolute inset-0 h-full w-full cursor-pointer opacity-[0.01]"
+                aria-label="Posting identity (click DP to switch)"
               >
                 <option value="user">My Profile ({{ userDisplayName() }})</option>
                 @for (business of businesses(); track business.id) {
                   <option [value]="'business:' + business.id">{{ business.name }} ({{ business.current_user_role }})</option>
                 }
               </select>
+            </label>
+
+            <div class="min-w-0">
+              <p class="truncate text-sm font-bold text-content-primary leading-tight">{{ authorLabel() }}</p>
+              <label
+                for="post-author"
+                class="cursor-pointer text-[11px] text-content-muted mt-0.5 inline-flex items-center gap-1 hover:text-brand-600 transition-colors"
+                title="Click DP to switch posting identity"
+              >
+                <span>{{ isUserAuthor() ? 'Personal account' : 'Business page' }}</span>
+                <span>·</span>
+                <span class="font-medium text-brand-600">Click DP to switch</span>
+              </label>
             </div>
           </div>
 
@@ -233,6 +254,18 @@ export class PostComposerComponent implements OnDestroy {
 
   userAvatar(): string | null {
     return this.auth.currentUser()?.profile?.avatar_url || null;
+  }
+
+  isUserAuthor(): boolean {
+    return this.form.controls.author.value === 'user';
+  }
+
+  currentAvatar(): string | null {
+    const value = this.form.controls.author.value;
+    if (value === 'user') return this.userAvatar();
+    const id = Number(value.split(':')[1]);
+    const b = this.businesses().find((item) => item.id === id);
+    return b?.logo_url || null;
   }
 
   authorLabel(): string {

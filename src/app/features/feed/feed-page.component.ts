@@ -9,6 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
@@ -16,6 +17,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Business, BusinessRole } from '../../core/business/business.models';
 import { BusinessService } from '../../core/business/business.service';
 import { FeedService } from '../../core/feed/feed.service';
+import { EventService } from '../../core/events/event.service';
 import { Post } from '../../core/post/post.models';
 import { PostService } from '../../core/post/post.service';
 import { PostCardComponent } from '../../shared/components/post-card.component';
@@ -41,6 +43,7 @@ import { FormsModule } from '@angular/forms';
     MobileBottomNavComponent,
     ConnectStripComponent,
     FeedSkeletonComponent,
+    DatePipe,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -155,6 +158,14 @@ import { FormsModule } from '@angular/forms';
               <span>{{ feed.refreshing() ? 'Refreshing…' : 'Refresh' }}</span>
             </button>
           </div>
+
+          @if (eventService.upcoming()[0]; as event) {
+            <section class="rounded-2xl border border-brand-200 bg-brand-soft p-5 shadow-card" aria-label="Featured upcoming event">
+              <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[11px] font-bold uppercase tracking-wider text-brand-strong">Featured UAE event</p><h2 class="mt-1 text-lg font-bold text-content-primary">{{ event.title }}</h2><p class="mt-1 text-sm text-content-secondary">{{ event.venue || event.emirate || 'UAE' }} · {{ event.starts_at | date:'medium' }}</p></div><span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-strong">{{ event.attendees_count || 0 }} going</span></div>
+              @if (event.description) { <p class="mt-3 text-sm text-content-secondary">{{ event.description }}</p> }
+              <button type="button" class="mt-4 rounded-xl bg-brand-primary px-4 py-2 text-xs font-semibold text-white" (click)="toggleEventRsvp(event)">{{ event.is_rsvped ? 'You are going' : 'RSVP to this event' }}</button>
+            </section>
+          }
 
           <!-- Compact Expandable Post Composer -->
           <div #composerRef>
@@ -311,6 +322,7 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy {
   readonly auth = inject(AuthService);
   readonly business = inject(BusinessService);
   readonly post = inject(PostService);
+  readonly eventService = inject(EventService);
 
   readonly pendingDelete = signal<Post | null>(null);
   readonly loggingOut = signal(false);
@@ -323,155 +335,28 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private observer?: IntersectionObserver;
 
-  // Curated UAE benchmark demo posts for the "For You" feed when no API posts exist yet
-  readonly curatedUaePosts: Post[] = [
-    {
-      id: 9991,
-      body: `We're expanding our engineering team in Dubai.\n\nIf you're passionate about building products used across the UAE, I'd love to connect.\n\n#Dubai #Technology #Hiring`,
-      status: 'published',
-      published_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      author: {
-        type: 'user',
-        id: 901,
-        name: 'Sarah Ahmed',
-        display_name: 'Sarah Ahmed',
-        headline: 'Founder & Managing Director',
-        avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80',
-        is_verified: true,
-        location: 'Dubai, UAE',
-      },
-      media: [
-        {
-          id: 881,
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80',
-          mime_type: 'image/jpeg',
-          width: 1200,
-          height: 800,
-          sort_order: 1,
-        },
-      ],
-      reactions: {
-        total: 128,
-        counts: { like: 94, celebrate: 22, insightful: 12, support: 0 },
-        current_user: null,
-      },
-      shares_count: 8,
-      comments_count: 24,
-    },
-    {
-      id: 9992,
-      body: `Delighted to announce our new Cloud & AI Innovation Hub in Dubai Internet City.\n\nPartnering with visionary UAE enterprises to accelerate digital transformation across logistics, finance, and smart infrastructure.\n\n#ArtificialIntelligence #DubaiTech #Cloud #Innovation`,
-      status: 'published',
-      published_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-      author: {
-        type: 'business',
-        id: 902,
-        name: 'Emirates Digital Labs',
-        slug: 'emirates-digital-labs',
-        logo_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=240&q=80',
-        is_verified: true,
-        industry: 'Enterprise Cloud & AI',
-        location: 'Dubai, UAE',
-      },
-      media: [
-        {
-          id: 882,
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
-          mime_type: 'image/jpeg',
-          width: 800,
-          height: 600,
-          sort_order: 1,
-        },
-        {
-          id: 883,
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80',
-          mime_type: 'image/jpeg',
-          width: 800,
-          height: 600,
-          sort_order: 2,
-        },
-      ],
-      reactions: {
-        total: 284,
-        counts: { like: 198, celebrate: 62, insightful: 24, support: 0 },
-        current_user: null,
-      },
-      shares_count: 31,
-      comments_count: 46,
-    },
-    {
-      id: 9993,
-      body: `A question for our UAE leadership network:\n\nAs the Emirates continues accelerating the national AI strategy and digital economy roadmap, which emerging technology domain will drive the most immediate commercial impact for UAE businesses?`,
-      status: 'published',
-      published_at: new Date(Date.now() - 9 * 3600 * 1000).toISOString(),
-      created_at: new Date(Date.now() - 9 * 3600 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 9 * 3600 * 1000).toISOString(),
-      author: {
-        type: 'user',
-        id: 903,
-        name: 'Dr. Rashid Al Nuaimi',
-        display_name: 'Dr. Rashid Al Nuaimi',
-        headline: 'Chief Innovation Officer',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80',
-        is_verified: true,
-        location: 'Abu Dhabi, UAE',
-      },
-      media: [],
-      poll: {
-        question: 'What technology will have the biggest impact on UAE businesses?',
-        options: [
-          { id: 1, text: 'Artificial Intelligence', votes: 222 },
-          { id: 2, text: 'Cloud Infrastructure', votes: 120 },
-          { id: 3, text: 'Blockchain & Web3', votes: 51 },
-          { id: 4, text: 'Industrial IoT', votes: 35 },
-        ],
-        total_votes: 428,
-        days_remaining: 2,
-      },
-      reactions: {
-        total: 196,
-        counts: { like: 142, insightful: 44, celebrate: 10, support: 0 },
-        current_user: null,
-      },
-      shares_count: 18,
-      comments_count: 62,
-    },
-  ];
-
   readonly displayedPosts = computed<Post[]>(() => {
     const apiPosts = this.feed.posts();
-    // If backend returned posts, display authoritative backend posts
-    if (apiPosts.length > 0) {
-      if (this.activeFilter() === 'following') {
-        // Filter for following tab
-        return apiPosts.filter((p) => p.author.type === 'business' || p.author.id % 2 === 0);
-      }
-      return apiPosts;
+    if (this.activeFilter() === 'following') {
+      return apiPosts.filter((p) => p.author.type === 'business' || p.author.id % 2 === 0);
     }
-
-    // When backend feed is empty and not loading, display curated UAE showcase posts for 'For You'
-    if (this.activeFilter() === 'for-you' && !this.feed.loadingInitial() && !this.feed.error()) {
-      return this.curatedUaePosts;
-    }
-
-    return [];
+    return apiPosts;
   });
 
   constructor() {
     this.feed.loadInitial();
+    this.eventService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.business
       .getMyBusinesses()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => this.managedBusinesses.set(response.data),
       });
+  }
+
+  toggleEventRsvp(event: import('../../core/discovery/discovery.service').DiscoveryEvent): void {
+    const request = event.is_rsvped ? this.eventService.cancel(event) : this.eventService.rsvp(event);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
   ngAfterViewInit(): void {

@@ -1,5 +1,8 @@
-import { Component, output } from '@angular/core';
+import { Component, DestroyRef, inject, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VerificationBadgeComponent } from '../verification-badge/verification-badge.component';
+import { StoryService } from '../../../core/stories/story.service';
 
 export interface ConnectUser {
   id: number;
@@ -13,7 +16,7 @@ export interface ConnectUser {
 
 @Component({
   selector: 'app-connect-strip',
-  imports: [VerificationBadgeComponent],
+  imports: [FormsModule, VerificationBadgeComponent],
   template: `
     <section class="rounded-2xl border border-border-subtle bg-surface-card p-3.5 shadow-card" aria-label="Professional Connect Stories">
       <div class="flex items-center justify-between pb-2.5">
@@ -28,7 +31,7 @@ export interface ConnectUser {
         <!-- Add Update Action -->
         <button
           type="button"
-          (click)="addStory.emit()"
+          (click)="creating.set(!creating())"
           class="group flex flex-col items-center gap-1.5 shrink-0 focus-visible:outline-none"
           aria-label="Add your professional update"
         >
@@ -43,42 +46,45 @@ export interface ConnectUser {
           <span class="text-xs font-medium text-content-primary group-hover:text-brand-600">You</span>
         </button>
 
-        <!-- Professional Profiles -->
-        @for (item of connections; track item.id) {
+        <!-- Live stories -->
+        @for (item of stories(); track item.id) {
           <button
             type="button"
             class="group flex flex-col items-center gap-1.5 shrink-0 focus-visible:outline-none"
-            [attr.aria-label]="item.name + ' - ' + item.role"
+            [attr.aria-label]="item.user.name + ' story'"
           >
             <div
-              class="relative rounded-full p-0.5 transition-transform duration-200 group-hover:scale-105"
-              [class.bg-gradient-to-tr]="item.hasUnreadUpdate"
-              [class.from-brand-500]="item.hasUnreadUpdate"
-              [class.to-brand-300]="item.hasUnreadUpdate"
-              [class.border]="!item.hasUnreadUpdate"
-              [class.border-border-subtle]="!item.hasUnreadUpdate"
+                  class="relative rounded-full border border-brand-400 p-0.5 transition-transform duration-200 group-hover:scale-105"
             >
               <div class="h-13 w-13 overflow-hidden rounded-full border-2 border-white bg-surface-secondary">
                 <img
-                  [src]="item.avatar"
-                  [alt]="item.name"
+                  [src]="item.user.avatar_url || ''"
+                  [alt]="item.user.name"
                   class="h-full w-full object-cover"
                   loading="lazy"
                 />
               </div>
 
-              @if (item.isVerified) {
+              @if (item.user.is_verified) {
                 <span class="absolute -bottom-0.5 -right-0.5 scale-90">
                   <app-verification-badge type="professional" />
                 </span>
               }
             </div>
             <span class="max-w-[64px] truncate text-xs font-medium text-content-primary group-hover:text-brand-600">
-              {{ item.name }}
+              {{ item.user.name }}
             </span>
           </button>
         }
       </div>
+      @if (creating()) {
+        <form class="mt-3 space-y-2 border-t border-border-subtle pt-3" (ngSubmit)="create()">
+          <label class="sr-only" for="story-body">Story text</label>
+          <textarea id="story-body" name="story-body" [(ngModel)]="body" maxlength="500" rows="2" class="w-full rounded-xl border border-border-subtle bg-surface-card p-2 text-xs" placeholder="Share a professional update"></textarea>
+          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="selectMedia($event)" class="block w-full text-xs" />
+          <div class="flex justify-end gap-2"><button type="button" class="rounded-lg border border-border-subtle px-3 py-1.5 text-xs" (click)="creating.set(false)">Cancel</button><button type="submit" class="rounded-lg bg-brand-primary px-3 py-1.5 text-xs font-semibold text-white" [disabled]="saving()">{{ saving() ? 'Posting…' : 'Post story' }}</button></div>
+        </form>
+      }
     </section>
   `,
   styles: [`
@@ -93,6 +99,18 @@ export interface ConnectUser {
 })
 export class ConnectStripComponent {
   readonly addStory = output<void>();
+  private readonly storyService = inject(StoryService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly stories = this.storyService.stories;
+  readonly creating = signal(false);
+  readonly saving = signal(false);
+  body = '';
+  private media?: File;
+
+  constructor() { this.storyService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(); }
+
+  selectMedia(event: Event): void { const file = (event.target as HTMLInputElement).files?.[0]; if (file && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 8 * 1024 * 1024) this.media = file; }
+  create(): void { if (!this.body.trim() && !this.media) return; this.saving.set(true); this.storyService.create(this.body, this.media).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: () => { this.body = ''; this.media = undefined; this.creating.set(false); }, complete: () => this.saving.set(false), error: () => this.saving.set(false) }); }
 
   readonly connections: ConnectUser[] = [
     {

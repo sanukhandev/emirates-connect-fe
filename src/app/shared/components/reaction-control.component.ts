@@ -11,11 +11,88 @@ import { EMPTY_REACTION_SUMMARY, REACTION_TYPES, ReactionSummary, ReactionType, 
   selector: 'app-reaction-control',
   template: `
     <div class="mt-3 flex flex-wrap items-center gap-2">
-      <button type="button" class="rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium transition hover:border-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary" [class.bg-brand-soft]="summary().current_user" [attr.aria-pressed]="!!summary().current_user" [attr.aria-label]="primaryLabel()" [disabled]="pending()" (click)="togglePrimary()">{{ primaryLabel() }}</button>
-      <button type="button" class="rounded-xl border border-border-subtle px-2 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary" aria-label="Choose reaction" aria-haspopup="menu" [attr.aria-expanded]="pickerOpen()" [disabled]="pending()" (click)="pickerOpen.set(!pickerOpen())">＋</button>
-      @if (summary().total > 0) { <span class="text-xs text-content-muted" aria-live="polite">{{ summary().total }} {{ summary().total === 1 ? 'reaction' : 'reactions' }}</span> }
-      @if (pickerOpen()) { <div class="relative basis-full"><div class="absolute left-0 z-10 mt-1 flex flex-wrap gap-1 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-card" role="menu" tabindex="0" aria-label="Reaction options" (keydown.escape)="pickerOpen.set(false)">@for (type of reactionTypes; track type) { <button type="button" role="menuitem" class="rounded-xl px-3 py-2 text-xs font-medium hover:bg-brand-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary" [attr.aria-label]="'React with ' + label(type)" (click)="choose(type)">{{ label(type) }}</button> }</div></div> }
-      @if (message()) { <span class="basis-full text-xs text-status-danger" role="alert">{{ message() }}</span> }
+      <!-- Like / Remove like button: highlight icon when reacted vs non-highlight outline icon when unreacted -->
+      <button
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+        [class.border-brand-400]="summary().current_user"
+        [class.bg-brand-50]="summary().current_user"
+        [class.text-brand-700]="summary().current_user"
+        [class.border-border-subtle]="!summary().current_user"
+        [class.text-content-secondary]="!summary().current_user"
+        [class.hover:border-brand-primary]="!summary().current_user"
+        [class.hover:text-brand-600]="!summary().current_user"
+        [attr.aria-pressed]="!!summary().current_user"
+        [attr.aria-label]="primaryLabel()"
+        [disabled]="pending()"
+        (click)="togglePrimary()"
+      >
+        <svg
+          class="h-3.5 w-3.5 transition-colors"
+          [class.text-brand-600]="summary().current_user"
+          [class.text-content-secondary]="!summary().current_user"
+          viewBox="0 0 24 24"
+          [attr.fill]="summary().current_user ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+        </svg>
+        <span>{{ primaryLabel() }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex h-8 w-8 items-center justify-center rounded-xl border border-border-subtle text-xs text-content-secondary hover:border-brand-primary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+        aria-label="Choose reaction"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="pickerOpen()"
+        [disabled]="pending()"
+        (click)="pickerOpen.set(!pickerOpen())"
+      >
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+
+      @if (summary().total > 0) {
+        <span class="text-xs text-content-muted" aria-live="polite">
+          {{ summary().total }} {{ summary().total === 1 ? 'reaction' : 'reactions' }}
+        </span>
+      }
+
+      <!-- Reactions picker with simple emojis -->
+      @if (pickerOpen()) {
+        <div class="relative basis-full">
+          <div
+            class="absolute left-0 z-10 mt-1 flex flex-wrap gap-1.5 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-card"
+            role="menu"
+            tabindex="0"
+            aria-label="Reaction options"
+            (keydown.escape)="pickerOpen.set(false)"
+          >
+            @for (type of reactionTypes; track type) {
+              <button
+                type="button"
+                role="menuitem"
+                class="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium hover:bg-brand-soft hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                [attr.aria-label]="'React with ' + label(type)"
+                (click)="choose(type)"
+              >
+                <span class="text-sm leading-none">{{ emoji(type) }}</span>
+                <span>{{ label(type) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (message()) {
+        <span class="basis-full text-xs text-status-danger" role="alert">{{ message() }}</span>
+      }
     </div>
   `,
 })
@@ -40,6 +117,14 @@ export class ReactionControlComponent implements OnChanges {
   }
 
   label(type: ReactionType): string { return type[0].toUpperCase() + type.slice(1); }
+  emoji(type: ReactionType): string {
+    switch (type) {
+      case 'like': return '👍';
+      case 'celebrate': return '👏';
+      case 'support': return '❤️';
+      case 'insightful': return '💡';
+    }
+  }
   primaryLabel(): string { const current = this.summary().current_user; return current ? `Remove ${this.label(current)} reaction` : this.auth.currentUser() ? 'Like' : 'Sign in to react'; }
 
   togglePrimary(): void {

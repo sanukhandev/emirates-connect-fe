@@ -1,6 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VerificationBadgeComponent } from '../../shared/components/verification-badge/verification-badge.component';
+import { DiscoveryService } from '../../core/discovery/discovery.service';
+import { EventService } from '../../core/events/event.service';
 
 interface SuggestedUser {
   id: number;
@@ -20,6 +24,7 @@ interface TrendingTag {
 
 interface FollowBusiness {
   id: number;
+  slug?: string;
   name: string;
   industry: string;
   location: string;
@@ -30,7 +35,7 @@ interface FollowBusiness {
 
 @Component({
   selector: 'app-right-sidebar',
-  imports: [RouterLink, VerificationBadgeComponent],
+  imports: [DatePipe, RouterLink, VerificationBadgeComponent],
   template: `
     <aside class="sticky top-6 flex w-72 flex-col gap-4.5 xl:w-80" aria-label="Contextual Discovery">
       <!-- CARD 1: Suggested Connections -->
@@ -86,7 +91,7 @@ interface FollowBusiness {
         </div>
 
         <div class="mt-2.5 space-y-3">
-          @for (item of trendingTags; track item.tag) {
+          @for (item of trending(); track item.tag) {
             <a
               routerLink="/search"
               [queryParams]="{ q: item.tag }"
@@ -151,33 +156,33 @@ interface FollowBusiness {
       <section class="rounded-2xl border border-border-subtle bg-surface-secondary/50 p-4">
         <h2 class="text-xs font-bold uppercase tracking-wider text-content-muted">Upcoming in UAE</h2>
         <div class="mt-2.5 space-y-2.5">
+          @for (event of upcoming(); track event.id) {
           <div class="flex items-start gap-2.5">
             <div class="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white border border-border-subtle text-center">
-              <span class="text-[9px] font-bold text-brand-600 uppercase">Nov</span>
-              <span class="text-xs font-bold text-content-primary">12</span>
+              <span class="text-[9px] font-bold text-brand-600 uppercase">{{ event.starts_at | date:'MMM' }}</span>
+              <span class="text-xs font-bold text-content-primary">{{ event.starts_at | date:'d' }}</span>
             </div>
             <div>
-              <p class="text-xs font-semibold text-content-primary">UAE Tech & AI Summit 2026</p>
-              <p class="text-[11px] text-content-secondary">Dubai Internet City · 1,420 attending</p>
+              <p class="text-xs font-semibold text-content-primary">{{ event.title }}</p>
+              <p class="text-[11px] text-content-secondary">{{ event.venue || event.emirate || 'UAE' }} · {{ event.attendees_count || 0 }} attending</p>
+              <button type="button" class="mt-1 text-[11px] font-semibold text-brand-600" (click)="toggleRsvp(event)">{{ event.is_rsvped ? 'Going' : 'RSVP' }}</button>
             </div>
           </div>
 
-          <div class="flex items-start gap-2.5">
-            <div class="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-white border border-border-subtle text-center">
-              <span class="text-[9px] font-bold text-brand-600 uppercase">Nov</span>
-              <span class="text-xs font-bold text-content-primary">24</span>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-content-primary">Abu Dhabi Founder Circle</p>
-              <p class="text-[11px] text-content-secondary">ADGM Hub · 380 attending</p>
-            </div>
-          </div>
+          } @empty { <p class="text-xs text-content-muted">No upcoming events yet.</p> }
         </div>
       </section>
     </aside>
   `,
 })
 export class RightSidebarComponent {
+  private readonly discovery = inject(DiscoveryService);
+  private readonly events = inject(EventService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly liveDiscovery = this.discovery.data;
+  readonly liveEvents = this.events.upcoming;
+  readonly trending = signal<TrendingTag[]>([]);
+  readonly upcoming = signal<{ id: number; title: string; venue?: string | null; emirate?: string | null; starts_at: string; attendees_count?: number; is_rsvped?: boolean }[]>([]);
   readonly suggestedUsers = signal<SuggestedUser[]>([
     {
       id: 201,
@@ -207,6 +212,16 @@ export class RightSidebarComponent {
       connected: false,
     },
   ]);
+
+  constructor() {
+    this.discovery.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
+      this.suggestedUsers.set(data.users.map((item) => ({ id: item.id, name: item.profile?.display_name || item.name, role: item.profile?.headline || 'UAE professional', location: item.profile?.emirate || 'UAE', avatar: item.profile?.avatar_url || '', isVerified: item.profile?.is_verified === true, connected: item.is_following === true })));
+      this.businesses.set(data.businesses.map((item) => ({ id: item.id, name: item.name, industry: item.industry || 'Business', location: item.emirate || 'UAE', logo: item.logo_url || '', isVerified: item.is_verified === true, following: item.is_following === true, slug: item.slug })));
+      this.trending.set(data.trending.map((item) => ({ tag: item.tag, category: 'UAE community', postsCount: `${item.posts_count} posts` })));
+      this.upcoming.set(data.events);
+    });
+    this.events.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((events) => this.upcoming.set(events));
+  }
 
   readonly trendingTags: TrendingTag[] = [
     { tag: '#DubaiTech', category: 'Technology', postsCount: '1.4k posts' },
@@ -247,14 +262,31 @@ export class RightSidebarComponent {
   ]);
 
   toggleConnect(id: number): void {
+    const user = this.suggestedUsers().find((item) => item.id === id);
+    if (user) {
+      const request = user.connected ? this.discovery.unfollowUser(id) : this.discovery.followUser(id);
+      request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
     this.suggestedUsers.update((users) =>
       users.map((u) => (u.id === id ? { ...u, connected: !u.connected } : u)),
     );
   }
 
   toggleFollowBusiness(id: number): void {
+    const business = this.businesses().find((item) => item.id === id);
+    if (business?.slug) {
+      const request = business.following ? this.discovery.unfollowBusiness(business.slug) : this.discovery.followBusiness(business.slug);
+      request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
     this.businesses.update((items) =>
       items.map((b) => (b.id === id ? { ...b, following: !b.following } : b)),
     );
+  }
+
+  toggleRsvp(event: { id: number; is_rsvped?: boolean }): void {
+    const current = this.upcoming().find((item) => item.id === event.id);
+    if (!current) return;
+    const request = current.is_rsvped ? this.events.cancel(current) : this.events.rsvp(current);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((updated) => this.upcoming.update((items) => items.map((item) => item.id === updated.id ? updated : item)));
   }
 }

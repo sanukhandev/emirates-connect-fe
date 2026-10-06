@@ -85,38 +85,89 @@ import { PostPollComponent } from './post-poll/post-poll.component';
             <p class="flex items-center gap-1 text-[11px] text-content-muted mt-0.5">
               <time>{{ post().published_at || post().created_at | date:'mediumDate' }}</time>
               <span>·</span>
-              <span title="Public UAE network" aria-label="Public post">🌐</span>
+              <span class="inline-flex items-center text-content-muted" title="Public UAE network" aria-label="Public post">
+                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </span>
             </p>
           </div>
         </div>
 
-        <!-- Management / Actions menu -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          @if (management()) {
+        <!-- Management / Options (3-dot menu) -->
+        @if (management() || canReport()) {
+          <div class="relative shrink-0">
             <button
               type="button"
-              class="rounded-xl border border-border-subtle bg-white px-2.5 py-1 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content-primary focus-visible:outline-none"
-              (click)="edit.emit()"
+              (click)="menuOpen.set(!menuOpen())"
+              class="flex h-8 w-8 items-center justify-center rounded-xl text-content-muted transition hover:bg-surface-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              title="Post options"
+              aria-label="Post options"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="menuOpen()"
             >
-              Edit
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="19" cy="12" r="1" />
+                <circle cx="5" cy="12" r="1" />
+              </svg>
             </button>
-            <button
-              type="button"
-              class="rounded-xl border border-status-danger/30 bg-white px-2.5 py-1 text-xs font-medium text-status-danger hover:bg-status-danger/10 focus-visible:outline-none"
-              (click)="remove.emit()"
-            >
-              Delete
-            </button>
-          } @else if (canReport()) {
-            <button
-              type="button"
-              class="rounded-xl border border-border-subtle bg-white px-2.5 py-1 text-xs font-medium text-content-muted hover:border-brand-500 hover:text-content-primary focus-visible:outline-none"
-              (click)="openReport()"
-            >
-              Report post
-            </button>
-          }
-        </div>
+
+            @if (menuOpen()) {
+              <div
+                class="absolute right-0 top-9 z-20 min-w-36 rounded-2xl border border-border-subtle bg-surface-card p-1.5 shadow-card-hover"
+                role="menu"
+                tabindex="0"
+                (keydown.escape)="menuOpen.set(false)"
+              >
+                @if (management()) {
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="onEdit()"
+                    class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content-primary transition"
+                  >
+                    <svg class="h-3.5 w-3.5 text-content-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="onRemove()"
+                    class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-status-danger hover:bg-status-danger/10 transition"
+                  >
+                    <svg class="h-3.5 w-3.5 text-status-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    <span>Delete</span>
+                  </button>
+                }
+
+                @if (canReport()) {
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="onReport()"
+                    class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-content-primary transition"
+                  >
+                    <svg class="h-3.5 w-3.5 text-content-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                      <line x1="4" y1="22" x2="4" y2="15" />
+                    </svg>
+                    <span>Report post</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
       </header>
 
       <!-- Post Body Text -->
@@ -161,9 +212,10 @@ import { PostPollComponent } from './post-poll/post-poll.component';
       <!-- Engagement Counts Summary -->
       <div class="mt-4 flex items-center justify-between border-b border-border-subtle pb-2.5 text-xs text-content-muted">
         <div class="flex items-center gap-1.5">
-          <span class="inline-flex -space-x-1">
-            <span class="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-brand-500 text-[10px] text-white">👍</span>
-            <span class="inline-flex h-4.5 w-4.5 items-center justify-center rounded-full bg-status-success text-[10px] text-white">🤝</span>
+          <span class="inline-flex -space-x-1 text-xs">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-50 text-[11px] shadow-xs" title="Like">👍</span>
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-[11px] shadow-xs" title="Celebrate">👏</span>
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-50 text-[11px] shadow-xs" title="Support">❤️</span>
           </span>
           <span>{{ reactionTotal() }} reactions</span>
         </div>
@@ -193,16 +245,16 @@ import { PostPollComponent } from './post-poll/post-poll.component';
           />
         }
 
-        <!-- Other actions: Comment, Share, Save -->
+        <!-- Other actions: Comment, Share, Save with colored line icons -->
         <div class="flex items-center gap-1">
           @if (showComments() && post().status === 'published') {
             <button
               type="button"
               (click)="commentsOpen.set(!commentsOpen())"
-              class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-brand-600 focus-visible:outline-none"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-xs font-medium text-content-secondary transition hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700 focus-visible:outline-none"
               [attr.aria-expanded]="commentsOpen()"
             >
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               <span>{{ commentsOpen() ? 'Hide' : 'Comment' }}</span>
@@ -212,10 +264,10 @@ import { PostPollComponent } from './post-poll/post-poll.component';
           <button
             type="button"
             (click)="sharePost()"
-            class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-content-secondary hover:bg-surface-secondary hover:text-brand-600 focus-visible:outline-none"
-            title="Share"
+            class="inline-flex items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-xs font-medium text-content-secondary transition hover:border-emerald-200 hover:bg-emerald-50/70 hover:text-emerald-700 focus-visible:outline-none"
+            title="Share post"
           >
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -228,14 +280,19 @@ import { PostPollComponent } from './post-poll/post-poll.component';
           <button
             type="button"
             (click)="toggleSave()"
-            class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none transition-colors"
-            [class.text-brand-600]="isSaved()"
+            class="inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition focus-visible:outline-none"
+            [class.border-amber-300]="isSaved()"
+            [class.bg-amber-50]="isSaved()"
+            [class.text-amber-700]="isSaved()"
+            [class.border-transparent]="!isSaved()"
             [class.text-content-secondary]="!isSaved()"
-            [class.hover:bg-surface-secondary]="!isSaved()"
+            [class.hover:border-amber-200]="!isSaved()"
+            [class.hover:bg-amber-50/50]="!isSaved()"
+            [class.hover:text-amber-700]="!isSaved()"
             title="Save post"
           >
             <svg
-              class="h-4 w-4"
+              class="h-4 w-4 text-amber-500"
               viewBox="0 0 24 24"
               [attr.fill]="isSaved() ? 'currentColor' : 'none'"
               stroke="currentColor"
@@ -281,6 +338,7 @@ export class PostCardComponent {
 
   readonly commentsOpen = signal(false);
   readonly isSaved = signal(false);
+  readonly menuOpen = signal(false);
   readonly reportTarget = signal<{ type: ReportTargetType; id: number; label: string } | null>(null);
   readonly message = signal('');
 
@@ -339,6 +397,21 @@ export class PostCardComponent {
     const user = this.auth.currentUser();
     const author = this.post().author;
     return !!user && !(author.type === 'user' && author.id === user.id);
+  }
+
+  onEdit(): void {
+    this.menuOpen.set(false);
+    this.edit.emit();
+  }
+
+  onRemove(): void {
+    this.menuOpen.set(false);
+    this.remove.emit();
+  }
+
+  onReport(): void {
+    this.menuOpen.set(false);
+    this.openReport();
   }
 
   openReport(): void {

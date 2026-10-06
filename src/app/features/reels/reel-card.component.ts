@@ -30,7 +30,7 @@ import { ReportDialogComponent } from '../../shared/components/report-dialog.com
               </div>
               <div class="min-w-0"><p class="truncate font-semibold">{{ authorName() }}</p><p class="truncate text-sm text-content-secondary">{{ authorSubtitle() }}</p></div>
             </a>
-            @if (reel().author.is_verified) { <span class="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong" aria-label="Verified profile">✓ Verified</span> } @if (!management() && canReport()) { <button type="button" class="shrink-0 rounded-xl border border-border-subtle px-3 py-2 text-sm font-medium hover:border-brand-primary" (click)="openReport()">Report reel</button> }
+            @if (reel().author.is_verified) { <span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong" aria-label="Verified profile"><svg class="h-3 w-3 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></svg> Verified</span> } @if (!management() && canReport()) { <button type="button" class="shrink-0 rounded-xl border border-border-subtle px-3 py-2 text-sm font-medium hover:border-brand-primary" (click)="openReport()">Report reel</button> }
           </div>
           @if (reel().caption) { <p class="mt-5 whitespace-pre-line leading-7 text-content-secondary">{{ reel().caption }}</p> }
           @if (reel().published_at) { <p class="mt-auto pt-6 text-xs text-content-muted">{{ reel().published_at | date:'mediumDate' }}</p> }
