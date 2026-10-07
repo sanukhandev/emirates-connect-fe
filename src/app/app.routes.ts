@@ -7,6 +7,7 @@ import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: 'forbidden', loadComponent: () => import('./features/forbidden.component').then((component) => component.ForbiddenComponent) },
+  { path: 'admin/events', canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin-events.component').then((component) => component.AdminEventsComponent) },
   ...['admin', 'admin/verifications/:id', 'admin/verifications', 'admin/reports/:id', 'admin/reports', 'admin/users/:id', 'admin/users', 'admin/businesses/:id', 'admin/businesses', 'admin/audit/verifications', 'admin/audit/moderation'].map((path) => ({ path, canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin-console.component').then((component) => component.AdminConsoleComponent) })),
   {
     path: '',

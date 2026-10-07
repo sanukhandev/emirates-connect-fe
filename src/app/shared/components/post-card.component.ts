@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { Post } from '../../core/post/post.models';
+import { Post, PostMedia } from '../../core/post/post.models';
 import { CommentSectionComponent } from './comment-section.component';
 import { ReactionControlComponent } from './reaction-control.component';
 import { ReportDialogComponent } from './report-dialog.component';
@@ -184,29 +184,44 @@ import { PostPollComponent } from './post-poll/post-poll.component';
 
       <!-- Post Media Gallery (1, 2, 3, 4 images mosaic) -->
       @if (post().media.length) {
-        <div
-          class="mt-3.5 overflow-hidden rounded-xl border border-border-subtle"
-          [class.grid]="post().media.length > 1"
-          [class.grid-cols-2]="post().media.length === 2 || post().media.length === 4"
-          [class.grid-cols-3]="post().media.length === 3"
-          [class.gap-1.5]="post().media.length > 1"
-        >
-          @for (media of post().media; track media.id; let index = $index) {
-            <div
-              class="relative bg-surface-secondary overflow-hidden"
-              [class.col-span-2]="post().media.length === 3 && index === 0"
-            >
-              <img
-                [src]="media.url"
-                [alt]="'Post attachment ' + (index + 1)"
-                class="w-full object-cover transition-transform duration-300 hover:scale-102"
-                [class.max-h-[28rem]]="post().media.length === 1"
-                [class.h-56]="post().media.length > 1"
-                loading="lazy"
-              />
-            </div>
-          }
-        </div>
+        @if (post().media.length === 1) {
+          @let singleMedia = post().media[0];
+          <div
+            class="mt-3.5 overflow-hidden rounded-xl border border-border-subtle bg-surface-secondary/40 flex items-center justify-center"
+          >
+            <img
+              [src]="singleMedia.url"
+              [alt]="'Post attachment 1'"
+              class="mx-auto w-auto max-w-full object-contain transition-transform duration-300 hover:scale-[1.01]"
+              [class.max-h-[400px]]="!isPortrait(singleMedia)"
+              [class.sm:max-h-[440px]]="!isPortrait(singleMedia)"
+              [class.max-h-[520px]]="isPortrait(singleMedia)"
+              [class.sm:max-h-[560px]]="isPortrait(singleMedia)"
+              loading="lazy"
+              (load)="onImageLoad($event, singleMedia.id)"
+            />
+          </div>
+        } @else {
+          <div
+            class="mt-3.5 overflow-hidden rounded-xl border border-border-subtle grid gap-1.5"
+            [class.grid-cols-2]="post().media.length === 2 || post().media.length === 4"
+            [class.grid-cols-3]="post().media.length === 3"
+          >
+            @for (media of post().media; track media.id; let index = $index) {
+              <div
+                class="relative bg-surface-secondary overflow-hidden flex items-center justify-center"
+                [class.col-span-2]="post().media.length === 3 && index === 0"
+              >
+                <img
+                  [src]="media.url"
+                  [alt]="'Post attachment ' + (index + 1)"
+                  class="h-56 w-full object-cover transition-transform duration-300 hover:scale-102"
+                  loading="lazy"
+                />
+              </div>
+            }
+          </div>
+        }
       }
 
       <!-- Engagement Counts Summary -->
@@ -341,8 +356,28 @@ export class PostCardComponent {
   readonly menuOpen = signal(false);
   readonly reportTarget = signal<{ type: ReportTargetType; id: number; label: string } | null>(null);
   readonly message = signal('');
+  readonly imageOrientations = signal<Record<number, 'landscape' | 'portrait'>>({});
 
   private readonly auth = inject(AuthStateService);
+
+  onImageLoad(event: Event, mediaId: number): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      const orientation = img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape';
+      this.imageOrientations.update((current) => ({ ...current, [mediaId]: orientation }));
+    }
+  }
+
+  isPortrait(media: PostMedia): boolean {
+    const dynamic = this.imageOrientations()[media.id];
+    if (dynamic) {
+      return dynamic === 'portrait';
+    }
+    if (media.width && media.height) {
+      return media.height > media.width;
+    }
+    return false;
+  }
 
   isUser(): boolean {
     return this.post().author.type === 'user';

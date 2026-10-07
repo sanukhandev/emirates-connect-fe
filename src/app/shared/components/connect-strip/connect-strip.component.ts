@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VerificationBadgeComponent } from '../verification-badge/verification-badge.component';
-import { StoryService } from '../../../core/stories/story.service';
+import { Story, StoryService } from '../../../core/stories/story.service';
 
 export interface ConnectUser {
   id: number;
@@ -52,6 +52,7 @@ export interface ConnectUser {
             type="button"
             class="group flex flex-col items-center gap-1.5 shrink-0 focus-visible:outline-none"
             [attr.aria-label]="item.user.name + ' story'"
+            (click)="selected.set(item)"
           >
             <div
                   class="relative rounded-full border border-brand-400 p-0.5 transition-transform duration-200 group-hover:scale-105"
@@ -85,6 +86,16 @@ export interface ConnectUser {
           <div class="flex justify-end gap-2"><button type="button" class="rounded-lg border border-border-subtle px-3 py-1.5 text-xs" (click)="creating.set(false)">Cancel</button><button type="submit" class="rounded-lg bg-brand-primary px-3 py-1.5 text-xs font-semibold text-white" [disabled]="saving()">{{ saving() ? 'Posting…' : 'Post story' }}</button></div>
         </form>
       }
+      @if (selected(); as story) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-content-primary/70 p-4" role="presentation" (click)="selected.set(null)">
+          <section class="relative w-full max-w-md overflow-hidden rounded-3xl bg-surface-card p-5 shadow-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <button type="button" class="absolute right-3 top-3 rounded-full bg-content-primary/70 px-2 py-1 text-xs text-white" (click)="selected.set(null)" aria-label="Close story">✕</button>
+            <p class="pr-8 text-sm font-bold">{{ story.user.name }}</p>
+            @if (story.media_url) { <img [src]="story.media_url" [alt]="story.user.name + ' story'" class="mt-4 max-h-[60vh] w-full rounded-2xl object-cover" /> }
+            @if (story.body) { <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-content-secondary">{{ story.body }}</p> }
+          </section>
+        </div>
+      }
     </section>
   `,
   styles: [`
@@ -104,6 +115,7 @@ export class ConnectStripComponent {
   readonly stories = this.storyService.stories;
   readonly creating = signal(false);
   readonly saving = signal(false);
+  readonly selected = signal<Story | null>(null);
   body = '';
   private media?: File;
 

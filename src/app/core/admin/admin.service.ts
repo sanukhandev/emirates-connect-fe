@@ -29,6 +29,7 @@ export class AdminService {
   businesses(query: Query): Observable<AdminPageResponse<AdminBusiness>> { return this.http.get<AdminPageResponse<AdminBusiness>>(`${this.base}/businesses`, { params: this.params(query) }); }
   business(id: number): Observable<AdminBusiness> { return this.http.get<AdminBusiness | Envelope<AdminBusiness>>(`${this.base}/businesses/${id}`).pipe(map((response) => this.resource(response))); }
   suspendBusiness(id: number, reason: string): Observable<AdminBusiness> { return this.http.post<AdminBusiness | Envelope<AdminBusiness>>(`${this.base}/businesses/${id}/suspend`, { reason }).pipe(map((response) => this.resource(response))); }
+  createEvent(payload: { title: string; description: string; venue: string; emirate: string; starts_at: string; ends_at: string }): Observable<unknown> { return this.http.post(`${this.base}/events`, payload); }
 
   private params(query: Query): HttpParams { return Object.entries(query).reduce((params, [key, value]) => value === null || value === undefined || value === '' ? params : params.set(key, String(value)), new HttpParams()); }
   private resource<T extends { id: number }>(response: T | Envelope<T>): T { return 'id' in response ? response : response.data; }

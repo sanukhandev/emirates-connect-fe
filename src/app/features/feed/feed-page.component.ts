@@ -59,9 +59,9 @@ import { FormsModule } from '@angular/forms';
 
         <!-- 2. Main Center Feed Column (minmax 0 to 680px) -->
         <main class="w-full max-w-[680px] shrink min-w-0 space-y-4 pb-20 md:pb-8">
-          <!-- Top Global Search & Create CTA -->
-          <section class="flex items-center gap-2.5 sm:gap-3" aria-label="Search and Create">
-            <div class="relative flex-1">
+          <!-- Top Global Search -->
+          <section aria-label="Global search">
+            <div class="relative w-full">
               <label for="global-search-input" class="sr-only">Search people, businesses and posts</label>
               <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-content-muted">
                 <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,20 +78,6 @@ import { FormsModule } from '@angular/forms';
                 class="w-full rounded-xl border border-border-subtle bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-content-primary placeholder:text-content-muted shadow-card transition-all duration-150 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/15"
               />
             </div>
-
-            <!-- Primary Create Post CTA -->
-            <button
-              type="button"
-              (click)="triggerCreate()"
-              class="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 hover:bg-brand-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-            >
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span class="hidden sm:inline">Create Post</span>
-              <span class="sm:hidden">Create</span>
-            </button>
           </section>
 
           <!-- Horizontal Connect Discovery Strip ("Connect" / Story strip) -->

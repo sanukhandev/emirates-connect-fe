@@ -73,7 +73,7 @@ interface FollowBusiness {
                 [class.text-white]="!user.connected"
                 [class.hover:bg-brand-600]="!user.connected"
               >
-                {{ user.connected ? 'Pending' : 'Connect' }}
+                {{ user.connected ? 'Following' : 'Follow' }}
               </button>
             </div>
           }
@@ -181,7 +181,13 @@ export class RightSidebarComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly liveDiscovery = this.discovery.data;
   readonly liveEvents = this.events.upcoming;
-  readonly trending = signal<TrendingTag[]>([]);
+  readonly trending = signal<TrendingTag[]>([
+    { tag: '#DubaiTech', category: 'Technology', postsCount: '1.4k posts' },
+    { tag: '#UAEStartups', category: 'Business', postsCount: '980 posts' },
+    { tag: '#ArtificialIntelligence', category: 'Innovation', postsCount: '2.1k posts' },
+    { tag: '#Entrepreneurship', category: 'Community', postsCount: '740 posts' },
+    { tag: '#AbuDhabi', category: 'Region', postsCount: '1.8k posts' },
+  ]);
   readonly upcoming = signal<{ id: number; title: string; venue?: string | null; emirate?: string | null; starts_at: string; attendees_count?: number; is_rsvped?: boolean }[]>([]);
   readonly suggestedUsers = signal<SuggestedUser[]>([
     {
@@ -212,25 +218,6 @@ export class RightSidebarComponent {
       connected: false,
     },
   ]);
-
-  constructor() {
-    this.discovery.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
-      this.suggestedUsers.set(data.users.map((item) => ({ id: item.id, name: item.profile?.display_name || item.name, role: item.profile?.headline || 'UAE professional', location: item.profile?.emirate || 'UAE', avatar: item.profile?.avatar_url || '', isVerified: item.profile?.is_verified === true, connected: item.is_following === true })));
-      this.businesses.set(data.businesses.map((item) => ({ id: item.id, name: item.name, industry: item.industry || 'Business', location: item.emirate || 'UAE', logo: item.logo_url || '', isVerified: item.is_verified === true, following: item.is_following === true, slug: item.slug })));
-      this.trending.set(data.trending.map((item) => ({ tag: item.tag, category: 'UAE community', postsCount: `${item.posts_count} posts` })));
-      this.upcoming.set(data.events);
-    });
-    this.events.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((events) => this.upcoming.set(events));
-  }
-
-  readonly trendingTags: TrendingTag[] = [
-    { tag: '#DubaiTech', category: 'Technology', postsCount: '1.4k posts' },
-    { tag: '#UAEStartups', category: 'Business', postsCount: '980 posts' },
-    { tag: '#ArtificialIntelligence', category: 'Innovation', postsCount: '2.1k posts' },
-    { tag: '#Entrepreneurship', category: 'Community', postsCount: '740 posts' },
-    { tag: '#AbuDhabi', category: 'Region', postsCount: '1.8k posts' },
-  ];
-
   readonly businesses = signal<FollowBusiness[]>([
     {
       id: 301,
@@ -260,6 +247,28 @@ export class RightSidebarComponent {
       following: false,
     },
   ]);
+
+  constructor() {
+    this.discovery.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
+      if (data.users?.length) {
+        this.suggestedUsers.set(data.users.map((item) => ({ id: item.id, name: item.profile?.display_name || item.name, role: item.profile?.headline || 'UAE professional', location: item.profile?.emirate || 'UAE', avatar: item.profile?.avatar_url || '', isVerified: item.profile?.is_verified === true, connected: item.is_following === true })));
+      }
+      if (data.businesses?.length) {
+        this.businesses.set(data.businesses.map((item) => ({ id: item.id, name: item.name, industry: item.industry || 'Business', location: item.emirate || 'UAE', logo: item.logo_url || '', isVerified: item.is_verified === true, following: item.is_following === true, slug: item.slug })));
+      }
+      if (data.trending?.length) {
+        this.trending.set(data.trending.map((item) => ({ tag: item.tag, category: 'UAE community', postsCount: `${item.posts_count} posts` })));
+      }
+      if (data.events?.length) {
+        this.upcoming.set(data.events);
+      }
+    });
+    this.events.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((events) => {
+      if (events?.length) {
+        this.upcoming.set(events);
+      }
+    });
+  }
 
   toggleConnect(id: number): void {
     const user = this.suggestedUsers().find((item) => item.id === id);
