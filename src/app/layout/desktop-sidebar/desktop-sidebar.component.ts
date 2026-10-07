@@ -13,29 +13,6 @@ import { AuthStateService } from '../../core/auth/auth-state.service';
     >
       <!-- Top Brand & Navigation -->
       <div class="space-y-6">
-        <!-- Logo / Wordmark -->
-        <a routerLink="/" class="flex items-center gap-3 px-2 py-1 focus-visible:outline-none group">
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-xs transition-transform group-hover:scale-105"
-          >
-            <!-- Original Emirates Connect Geometric Emblem -->
-            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M12 2L19.5 6.33V15L12 19.33L4.5 15V6.33L12 2Z"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <circle cx="12" cy="10.66" r="3" fill="currentColor" />
-            </svg>
-          </div>
-          <div class="hidden min-w-0 lg:block">
-            <span class="block text-base font-bold tracking-tight text-content-primary">Emirates Connect</span>
-            <span class="block text-[10px] font-medium uppercase tracking-wider text-brand-600">UAE Network</span>
-          </div>
-        </a>
-
         <!-- Main Navigation Links -->
         <nav class="space-y-1.5" aria-label="Primary Navigation">
           <a
