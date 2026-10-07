@@ -18,14 +18,14 @@ import { ReportTargetType } from '../../core/report/report.models';
   selector: 'app-comment-section',
   imports: [DatePipe, NgTemplateOutlet, ReactiveFormsModule, RouterLink, ReactionControlComponent, ReportDialogComponent],
   template: `
-      <section class="mt-5 border-t border-border-subtle pt-5" [attr.data-post-comments]="postId" aria-label="Comments">
-      <h3 class="text-lg font-semibold">Comments</h3>
+      <section class="mt-5 border-t border-border-subtle pt-5" [attr.data-comments-target]="targetType + '-' + postId" [attr.aria-label]="targetLabel() + ' comments'">
+      <h3 class="text-lg font-semibold">Comments on this {{ targetLabel() }}</h3>
       @if (loading()) { <p class="mt-4 text-sm text-content-secondary" role="status">Loading comments…</p> }
       @else if (error()) { <div class="mt-4 rounded-2xl bg-status-danger/10 p-4 text-sm text-status-danger" role="alert"><p>{{ error() }}</p><button type="button" class="mt-3 rounded-xl border border-status-danger/30 px-3 py-2 font-medium" (click)="loadInitial()">Retry</button></div> }
-      @else if (!comments().length) { <p class="mt-4 text-sm text-content-secondary">Be the first to comment.</p> }
+      @else if (!comments().length) { <p class="mt-4 text-sm text-content-secondary">Be the first to comment on this {{ targetLabel() }}.</p> }
       @else { <ol class="mt-4 space-y-5" aria-label="Comment thread">@for (comment of comments(); track comment.id) { <li class="space-y-3" [attr.data-comment-id]="comment.id"><ng-container *ngTemplateOutlet="commentTemplate; context: { item: comment, reply: false }" /><ol class="ml-4 space-y-3 border-l-2 border-border-subtle pl-4 sm:ml-8">@for (reply of comment.replies; track reply.id) { <li [attr.data-comment-id]="reply.id"><ng-container *ngTemplateOutlet="commentTemplate; context: { item: reply, reply: true }" /></li> }</ol>@if (replyTo() === comment.id) { <form class="ml-4 rounded-2xl bg-surface-muted p-4 sm:ml-8" [formGroup]="form" (ngSubmit)="submit()" novalidate><p class="text-sm font-medium">Replying to {{ authorName(comment.author) }}</p><ng-container *ngTemplateOutlet="composerFields; context: { reply: true }" /></form> }</li> }</ol> }
       @if (!loading() && !error() && hasMore()) { @if (loadMoreError()) { <div class="mt-4 text-sm text-status-danger" role="alert"><span>{{ loadMoreError() }}</span> <button type="button" class="ml-2 underline" (click)="loadMore()">Retry</button></div> } @else { <button type="button" class="mt-5 rounded-xl border border-border-subtle px-4 py-3 text-sm font-medium" (click)="loadMore()" [disabled]="loadingMore()">{{ loadingMore() ? 'Loading…' : 'Load more comments' }}</button> } }
-      @if (canComment()) { @if (!replyTo()) { <form class="mt-5 rounded-2xl bg-surface-muted p-4" [formGroup]="form" (ngSubmit)="submit()" novalidate><ng-container *ngTemplateOutlet="composerFields; context: { reply: false }" /></form> } } @else if (auth.currentUser()) { <p class="mt-5 text-sm text-content-secondary">Comments are unavailable for this post.</p> }
+      @if (canComment()) { @if (!replyTo()) { <form class="mt-5 rounded-2xl bg-surface-muted p-4" [formGroup]="form" (ngSubmit)="submit()" novalidate><ng-container *ngTemplateOutlet="composerFields; context: { reply: false }" /></form> } } @else if (auth.currentUser()) { <p class="mt-5 text-sm text-content-secondary">Comments are unavailable for this {{ targetLabel() }}.</p> }
       @if (pendingDelete(); as pending) { <div class="fixed inset-0 z-20 flex items-center justify-center bg-content-primary/40 px-4" role="presentation"><section role="dialog" aria-modal="true" aria-labelledby="delete-comment-title-{{ postId }}" class="w-full max-w-md rounded-3xl bg-surface-card p-6 shadow-card"><h4 id="delete-comment-title-{{ postId }}" class="text-xl font-bold">Delete {{ pending.reply ? 'reply' : 'comment' }}?</h4><p class="mt-2 text-sm text-content-secondary">This cannot be undone.</p><div class="mt-6 flex justify-end gap-3"><button type="button" class="rounded-xl border border-border-subtle px-4 py-3 text-sm" (click)="cancelDelete()">Cancel</button><button type="button" class="rounded-xl bg-status-danger px-4 py-3 text-sm font-medium text-white" (click)="confirmDelete()" [disabled]="saving()">{{ saving() ? 'Deleting…' : 'Delete' }}</button></div></section></div> }
       </section>
       @if (message()) { <p class="mt-3 text-sm text-status-success" role="status">{{ message() }}</p> } @if (reportTarget(); as target) { <app-report-dialog [targetType]="target.type" [targetId]="target.id" [targetLabel]="target.label" (closed)="closeReport($event)" /> }
@@ -87,6 +87,7 @@ export class CommentSectionComponent implements OnInit {
   }
 
   canComment(): boolean { return this.auth.currentUser() !== null; }
+  targetLabel(): string { return this.targetType === 'reel' ? 'reel' : 'post'; }
   updateAuthor(event: Event): void { if (event.target instanceof HTMLSelectElement) this.form.controls.author.setValue(event.target.value); }
   updateBody(event: Event): void { if (event.target instanceof HTMLTextAreaElement) this.form.controls.body.setValue(event.target.value); }
   startReply(id: number): void { this.replyTo.set(id); this.message.set(''); this.form.reset({ author: 'user', body: '' }); }
