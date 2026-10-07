@@ -76,6 +76,8 @@ interface FollowBusiness {
                 {{ user.connected ? 'Following' : 'Follow' }}
               </button>
             </div>
+          } @empty {
+            <p class="text-xs text-content-muted">No suggestions right now.</p>
           }
         </div>
       </section>
@@ -105,6 +107,8 @@ interface FollowBusiness {
               </div>
               <span class="text-[10px] text-content-secondary uppercase tracking-wider">{{ item.category }}</span>
             </a>
+          } @empty {
+            <p class="text-xs text-content-muted">No trending topics right now.</p>
           }
         </div>
       </section>
@@ -148,6 +152,8 @@ interface FollowBusiness {
                 {{ biz.following ? 'Following' : 'Follow' }}
               </button>
             </div>
+          } @empty {
+            <p class="text-xs text-content-muted">No businesses to follow right now.</p>
           }
         </div>
       </section>
@@ -181,92 +187,20 @@ export class RightSidebarComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly liveDiscovery = this.discovery.data;
   readonly liveEvents = this.events.upcoming;
-  readonly trending = signal<TrendingTag[]>([
-    { tag: '#DubaiTech', category: 'Technology', postsCount: '1.4k posts' },
-    { tag: '#UAEStartups', category: 'Business', postsCount: '980 posts' },
-    { tag: '#ArtificialIntelligence', category: 'Innovation', postsCount: '2.1k posts' },
-    { tag: '#Entrepreneurship', category: 'Community', postsCount: '740 posts' },
-    { tag: '#AbuDhabi', category: 'Region', postsCount: '1.8k posts' },
-  ]);
+  readonly trending = signal<TrendingTag[]>([]);
   readonly upcoming = signal<{ id: number; title: string; venue?: string | null; emirate?: string | null; starts_at: string; attendees_count?: number; is_rsvped?: boolean }[]>([]);
-  readonly suggestedUsers = signal<SuggestedUser[]>([
-    {
-      id: 201,
-      name: 'Ahmed Al Mansoori',
-      role: 'Product Manager',
-      location: 'Dubai',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80',
-      isVerified: true,
-      connected: false,
-    },
-    {
-      id: 202,
-      name: 'Sara Hassan',
-      role: 'Founder & CEO',
-      location: 'Abu Dhabi',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=160&q=80',
-      isVerified: true,
-      connected: false,
-    },
-    {
-      id: 203,
-      name: 'David Wilson',
-      role: 'Solutions Architect',
-      location: 'Dubai',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80',
-      isVerified: false,
-      connected: false,
-    },
-  ]);
-  readonly businesses = signal<FollowBusiness[]>([
-    {
-      id: 301,
-      name: 'Emirates Digital Labs',
-      industry: 'Technology',
-      location: 'Dubai',
-      logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
-      isVerified: true,
-      following: false,
-    },
-    {
-      id: 302,
-      name: 'Desert Cloud Technologies',
-      industry: 'Cloud & AI',
-      location: 'Abu Dhabi',
-      logo: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=120&q=80',
-      isVerified: true,
-      following: false,
-    },
-    {
-      id: 303,
-      name: 'Dubai Founders Hub',
-      industry: 'Startup Ecosystem',
-      location: 'Dubai',
-      logo: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=120&q=80',
-      isVerified: true,
-      following: false,
-    },
-  ]);
+  readonly suggestedUsers = signal<SuggestedUser[]>([]);
+  readonly businesses = signal<FollowBusiness[]>([]);
 
   constructor() {
     this.discovery.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
-      if (data.users?.length) {
-        this.suggestedUsers.set(data.users.map((item) => ({ id: item.id, name: item.profile?.display_name || item.name, role: item.profile?.headline || 'UAE professional', location: item.profile?.emirate || 'UAE', avatar: item.profile?.avatar_url || '', isVerified: item.profile?.is_verified === true, connected: item.is_following === true })));
-      }
-      if (data.businesses?.length) {
-        this.businesses.set(data.businesses.map((item) => ({ id: item.id, name: item.name, industry: item.industry || 'Business', location: item.emirate || 'UAE', logo: item.logo_url || '', isVerified: item.is_verified === true, following: item.is_following === true, slug: item.slug })));
-      }
-      if (data.trending?.length) {
-        this.trending.set(data.trending.map((item) => ({ tag: item.tag, category: 'UAE community', postsCount: `${item.posts_count} posts` })));
-      }
-      if (data.events?.length) {
-        this.upcoming.set(data.events);
-      }
+      this.suggestedUsers.set(data.users.map((item) => ({ id: item.id, name: item.profile?.display_name || item.name, role: item.profile?.headline || 'UAE professional', location: item.profile?.emirate || 'UAE', avatar: item.profile?.avatar_url || '', isVerified: item.profile?.is_verified === true, connected: item.is_following === true })));
+      this.businesses.set(data.businesses.map((item) => ({ id: item.id, name: item.name, industry: item.industry || 'Business', location: item.emirate || 'UAE', logo: item.logo_url || '', isVerified: item.is_verified === true, following: item.is_following === true, slug: item.slug })));
+      this.trending.set(data.trending.map((item) => ({ tag: item.tag, category: 'UAE community', postsCount: `${item.posts_count} posts` })));
+      this.upcoming.set(data.events);
     });
     this.events.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((events) => {
-      if (events?.length) {
-        this.upcoming.set(events);
-      }
+      this.upcoming.set(events);
     });
   }
 
