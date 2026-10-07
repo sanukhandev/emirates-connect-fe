@@ -6,10 +6,12 @@ import { Reel } from '../../core/reel/reel.models';
 import { AuthStateService } from '../../core/auth/auth-state.service';
 import { ReportTargetType } from '../../core/report/report.models';
 import { ReportDialogComponent } from '../../shared/components/report-dialog.component';
+import { ReactionControlComponent } from '../../shared/components/reaction-control.component';
+import { CommentSectionComponent } from '../../shared/components/comment-section.component';
 
 @Component({
   selector: 'app-reel-card',
-  imports: [DatePipe, RouterLink, ReportDialogComponent],
+  imports: [DatePipe, RouterLink, ReportDialogComponent, ReactionControlComponent, CommentSectionComponent],
   template: `
     <article class="overflow-hidden rounded-3xl border border-border-subtle bg-surface-card shadow-card">
       <div class="grid gap-5 p-4 sm:p-5 md:grid-cols-[minmax(220px,360px)_1fr]">
@@ -33,6 +35,14 @@ import { ReportDialogComponent } from '../../shared/components/report-dialog.com
             @if (reel().author.is_verified) { <span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong" aria-label="Verified profile"><svg class="h-3 w-3 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></svg> Verified</span> } @if (!management() && canReport()) { <button type="button" class="shrink-0 rounded-xl border border-border-subtle px-3 py-2 text-sm font-medium hover:border-brand-primary" (click)="openReport()">Report reel</button> }
           </div>
           @if (reel().caption) { <p class="mt-5 whitespace-pre-line leading-7 text-content-secondary">{{ reel().caption }}</p> }
+          @if (reel().status === 'published') {
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <app-reaction-control targetType="reel" [targetId]="reel().id" [reactionSummary]="reel().reactions ?? null" />
+              <button type="button" class="rounded-xl border border-border-subtle px-3 py-2 text-xs font-semibold text-content-secondary hover:border-brand-primary" (click)="commentsOpen.set(!commentsOpen())">{{ commentsOpen() ? 'Hide comments' : 'Comments' }}</button>
+              <button type="button" class="rounded-xl border border-border-subtle px-3 py-2 text-xs font-semibold text-content-secondary hover:border-brand-primary" (click)="shareReel()">Share</button>
+            </div>
+            @if (commentsOpen()) { <app-comment-section [postId]="reel().id" targetType="reel" /> }
+          }
           @if (reel().published_at) { <p class="mt-auto pt-6 text-xs text-content-muted">{{ reel().published_at | date:'mediumDate' }}</p> }
           @if (management()) { <div class="mt-5 flex flex-wrap gap-2"><button type="button" class="rounded-xl border border-border-subtle px-3 py-2 text-sm font-medium hover:border-brand-primary" (click)="edit.emit(reel())">Edit caption</button><button type="button" class="rounded-xl border border-status-danger/30 px-3 py-2 text-sm font-medium text-status-danger hover:bg-status-danger/10" (click)="remove.emit(reel())">Delete</button></div> }
         </div>
@@ -48,6 +58,7 @@ export class ReelCardComponent {
   readonly remove = output<Reel>();
   readonly reportTarget = signal<{ type: ReportTargetType; id: number; label: string } | null>(null);
   readonly message = signal('');
+  readonly commentsOpen = signal(false);
   private readonly auth = inject(AuthStateService);
 
   authorName(): string { const author = this.reel().author; return author.type === 'user' ? (author.display_name || 'Professional profile') : author.name; }
@@ -59,4 +70,9 @@ export class ReelCardComponent {
   canReport(): boolean { const user = this.auth.currentUser(); const author = this.reel().author; return !!user && !(author.type === 'user' && author.id === user.id); }
   openReport(): void { this.reportTarget.set({ type: 'reel', id: this.reel().id, label: 'reel' }); }
   closeReport(result: 'submitted' | 'cancelled'): void { this.reportTarget.set(null); if (result === 'submitted') this.message.set('Report submitted.'); }
+  shareReel(): void {
+    const url = `${window.location.origin}/reels/${this.reel().id}`;
+    if (navigator.share) void navigator.share({ title: 'Emirates Connect reel', url }).catch(() => undefined);
+    else if (navigator.clipboard) void navigator.clipboard.writeText(url).then(() => this.message.set('Reel link copied.'));
+  }
 }

@@ -44,6 +44,7 @@ import { ReportTargetType } from '../../core/report/report.models';
 })
 export class CommentSectionComponent implements OnInit {
   @Input({ required: true }) postId!: number;
+  @Input() targetType: 'post' | 'reel' = 'post';
   @Input() autoLoad = true;
 
   readonly comments = signal<Comment[]>([]);
@@ -76,13 +77,13 @@ export class CommentSectionComponent implements OnInit {
   loadInitial(): void {
     if (this.loading()) return;
     this.loading.set(true); this.error.set(''); this.loadMoreError.set(''); this.currentPage = 0; this.comments.set([]);
-    this.service.getComments(this.postId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (response) => { this.currentPage = response.meta.current_page; this.hasMore.set(response.meta.current_page < response.meta.last_page); this.comments.set(response.data); this.loading.set(false); }, error: (error: unknown) => { this.error.set('Unable to load comments.'); this.loading.set(false); this.hasMore.set(false); this.message.set(this.service.errorMessage(error)); } });
+    this.service.getComments(this.targetType, this.postId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (response) => { this.currentPage = response.meta.current_page; this.hasMore.set(response.meta.current_page < response.meta.last_page); this.comments.set(response.data); this.loading.set(false); }, error: (error: unknown) => { this.error.set('Unable to load comments.'); this.loading.set(false); this.hasMore.set(false); this.message.set(this.service.errorMessage(error)); } });
   }
 
   loadMore(): void {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true); this.loadMoreError.set('');
-    this.service.getComments(this.postId, this.currentPage + 1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (response) => { const ids = new Set(this.comments().map((item) => item.id)); this.comments.update((items) => [...items, ...response.data.filter((item) => !ids.has(item.id))]); this.currentPage = response.meta.current_page; this.hasMore.set(response.meta.current_page < response.meta.last_page); this.loadingMore.set(false); }, error: (error: unknown) => { this.loadMoreError.set(this.service.errorMessage(error)); this.loadingMore.set(false); } });
+    this.service.getComments(this.targetType, this.postId, this.currentPage + 1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (response) => { const ids = new Set(this.comments().map((item) => item.id)); this.comments.update((items) => [...items, ...response.data.filter((item) => !ids.has(item.id))]); this.currentPage = response.meta.current_page; this.hasMore.set(response.meta.current_page < response.meta.last_page); this.loadingMore.set(false); }, error: (error: unknown) => { this.loadMoreError.set(this.service.errorMessage(error)); this.loadingMore.set(false); } });
   }
 
   canComment(): boolean { return this.auth.currentUser() !== null; }
@@ -97,7 +98,7 @@ export class CommentSectionComponent implements OnInit {
     const body = this.form.controls.body.value.trim();
     if (!body || this.saving()) { this.message.set('Write a comment before submitting.'); return; }
     const payload = this.authorPayload(body); const replyId = this.replyTo(); this.saving.set(true); this.message.set('');
-    const request = replyId ? this.service.createReply(replyId, payload) : this.service.createComment(this.postId, payload);
+    const request = replyId ? this.service.createReply(replyId, payload) : this.service.createComment(this.targetType, this.postId, payload);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (comment) => { if (replyId) this.appendReply(replyId, comment); else this.appendComment(comment); this.saving.set(false); this.form.reset({ author: this.form.controls.author.value, body: '' }); this.replyTo.set(null); }, error: (error: unknown) => { this.saving.set(false); this.message.set(this.service.errorMessage(error)); } });
   }
 

@@ -18,6 +18,14 @@ export class ReactionService {
     return this.http.delete<void>(`${this.baseUrl}/posts/${postId}/reaction`).pipe(map(() => undefined));
   }
 
+  setReelReaction(reelId: number, type: ReactionType): Observable<ReactionSummary> {
+    return this.http.put<ReactionResponse>(`${this.baseUrl}/reels/${reelId}/reaction`, { type }).pipe(map((response) => response.data.reactions));
+  }
+
+  removeReelReaction(reelId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/reels/${reelId}/reaction`).pipe(map(() => undefined));
+  }
+
   setCommentReaction(commentId: number, type: ReactionType): Observable<ReactionSummary> {
     return this.http.put<ReactionResponse>(`${this.baseUrl}/comments/${commentId}/reaction`, { type }).pipe(map((response) => response.data.reactions));
   }

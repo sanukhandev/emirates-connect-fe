@@ -98,7 +98,7 @@ import { EMPTY_REACTION_SUMMARY, REACTION_TYPES, ReactionSummary, ReactionType, 
 })
 export class ReactionControlComponent implements OnChanges {
   readonly targetId = input.required<number>();
-  readonly targetType = input.required<'post' | 'comment'>();
+  readonly targetType = input.required<'post' | 'comment' | 'reel'>();
   readonly reactionSummary = input<ReactionSummary | null>(null);
   readonly summaryChange = output<ReactionSummary>();
   readonly summary = signal<ReactionSummary>(EMPTY_REACTION_SUMMARY);
@@ -146,8 +146,8 @@ export class ReactionControlComponent implements OnChanges {
     this.summaryChange.emit(this.summary());
     this.pending.set(true); this.message.set('');
     const request: Observable<ReactionSummary> = next
-      ? (this.targetType() === 'post' ? this.service.setPostReaction(this.targetId(), next) : this.service.setCommentReaction(this.targetId(), next))
-      : (this.targetType() === 'post' ? this.service.removePostReaction(this.targetId()) : this.service.removeCommentReaction(this.targetId())).pipe(map(() => this.summary()));
+      ? (this.targetType() === 'post' ? this.service.setPostReaction(this.targetId(), next) : this.targetType() === 'reel' ? this.service.setReelReaction(this.targetId(), next) : this.service.setCommentReaction(this.targetId(), next))
+      : (this.targetType() === 'post' ? this.service.removePostReaction(this.targetId()) : this.targetType() === 'reel' ? this.service.removeReelReaction(this.targetId()) : this.service.removeCommentReaction(this.targetId())).pipe(map(() => this.summary()));
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (authoritative: ReactionSummary) => { if (next) { this.summary.set(this.clone(authoritative)); this.summaryChange.emit(this.summary()); } this.pending.set(false); },
       error: (error: unknown) => { this.summary.set(previous); this.summaryChange.emit(previous); this.pending.set(false); this.message.set(this.service.errorMessage(error)); },

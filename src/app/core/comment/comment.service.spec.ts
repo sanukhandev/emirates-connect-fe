@@ -21,13 +21,13 @@ describe('CommentService', () => {
   afterEach(() => http.verify());
 
   it('lists comments and forwards pagination', async () => {
-    const request = firstValueFrom(service.getComments(4, 2));
+    const request = firstValueFrom(service.getComments('post', 4, 2));
     http.expectOne(`${environment.apiBaseUrl}/posts/4/comments?page=2`).flush({ data: [comment], links: { next: null }, meta: { current_page: 2, last_page: 2, per_page: 20, total: 1 } });
     await expect(request).resolves.toMatchObject({ data: [comment], meta: { current_page: 2 } });
   });
 
   it('uses user/business author payloads and mutation endpoints', async () => {
-    const user = firstValueFrom(service.createComment(4, { author_type: 'user', body: 'User comment' }));
+    const user = firstValueFrom(service.createComment('post', 4, { author_type: 'user', body: 'User comment' }));
     http.expectOne(`${environment.apiBaseUrl}/posts/4/comments`).flush({ data: comment });
     await expect(user).resolves.toEqual(comment);
 

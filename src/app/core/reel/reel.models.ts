@@ -35,6 +35,7 @@ export interface Reel {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  reactions?: import('../reaction/reaction.models').ReactionSummary;
 }
 
 export interface ReelCursorMeta {

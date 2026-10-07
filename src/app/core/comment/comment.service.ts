@@ -10,12 +10,12 @@ export class CommentService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiBaseUrl;
 
-  getComments(postId: number, page = 1): Observable<PaginatedCommentResponse> {
-    return this.http.get<PaginatedCommentResponse>(`${this.baseUrl}/posts/${postId}/comments?page=${page}`);
+  getComments(targetType: 'post' | 'reel', targetId: number, page = 1): Observable<PaginatedCommentResponse> {
+    return this.http.get<PaginatedCommentResponse>(`${this.baseUrl}/${targetType}s/${targetId}/comments?page=${page}`);
   }
 
-  createComment(postId: number, payload: CreateCommentPayload): Observable<Comment> {
-    return this.http.post<CommentResponse>(`${this.baseUrl}/posts/${postId}/comments`, payload).pipe(map((response) => response.data));
+  createComment(targetType: 'post' | 'reel', targetId: number, payload: CreateCommentPayload): Observable<Comment> {
+    return this.http.post<CommentResponse>(`${this.baseUrl}/${targetType}s/${targetId}/comments`, payload).pipe(map((response) => response.data));
   }
 
   createReply(commentId: number, payload: CreateReplyPayload): Observable<Comment> {
