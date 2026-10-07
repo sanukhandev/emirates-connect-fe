@@ -27,20 +27,23 @@ import { EMPTY_REACTION_SUMMARY, REACTION_TYPES, ReactionSummary, ReactionType, 
         [disabled]="pending()"
         (click)="togglePrimary()"
       >
-        <svg
-          class="h-3.5 w-3.5 transition-colors"
-          [class.text-brand-600]="summary().current_user"
-          [class.text-content-secondary]="!summary().current_user"
-          viewBox="0 0 24 24"
-          [attr.fill]="summary().current_user ? 'currentColor' : 'none'"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-        </svg>
-        <span>{{ primaryLabel() }}</span>
+        @if (summary().current_user) {
+          <span class="text-sm leading-none" aria-hidden="true">{{ emoji(summary().current_user!) }}</span>
+        } @else {
+          <svg
+            class="h-3.5 w-3.5 text-content-secondary transition-colors"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+          </svg>
+        }
+        <span>{{ visibleLabel() }}</span>
       </button>
 
       <button
@@ -125,6 +128,12 @@ export class ReactionControlComponent implements OnChanges {
       case 'insightful': return '💡';
     }
   }
+  visibleLabel(): string {
+    const current = this.summary().current_user;
+    if (current) return this.label(current);
+    return this.auth.currentUser() ? 'Like' : 'Sign in to react';
+  }
+
   primaryLabel(): string { const current = this.summary().current_user; return current ? `Remove ${this.label(current)} reaction` : this.auth.currentUser() ? 'Like' : 'Sign in to react'; }
 
   togglePrimary(): void {

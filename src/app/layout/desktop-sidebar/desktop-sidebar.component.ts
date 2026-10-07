@@ -8,7 +8,7 @@ import { AuthStateService } from '../../core/auth/auth-state.service';
   imports: [RouterLink, RouterLinkActive],
   template: `
     <aside
-      class="sticky top-6 flex h-[calc(100vh-3rem)] flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card transition-all duration-300 md:w-16 lg:w-60 xl:w-64"
+      class="sticky top-20 flex h-[calc(100vh-6rem)] flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card transition-all duration-300 md:w-16 lg:w-60 xl:w-64"
       aria-label="Main Navigation"
     >
       <!-- Top Brand & Navigation -->

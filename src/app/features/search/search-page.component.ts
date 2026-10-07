@@ -11,7 +11,6 @@ import { SearchService } from '../../core/search/search.service';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 @Component({
   selector: 'app-search-page',
@@ -21,7 +20,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -37,8 +35,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
 
         <!-- 2. Main Discovery Content Column -->
         <main class="w-full max-w-[1080px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header />
 
           <!-- Discover Page Header Banner -->
           <header class="space-y-1.5">

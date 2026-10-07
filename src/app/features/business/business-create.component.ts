@@ -9,7 +9,6 @@ import { BusinessFormComponent } from './business-form.component';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 @Component({
   selector: 'app-business-create',
@@ -19,7 +18,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -35,9 +33,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[1080px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header [showCreate]="false" />
-
           <!-- Breadcrumbs and Back Link -->
           <div class="flex items-center gap-2 text-sm text-content-secondary">
             <a routerLink="/businesses" class="inline-flex items-center gap-1.5 font-medium hover:text-brand-600 transition-colors">

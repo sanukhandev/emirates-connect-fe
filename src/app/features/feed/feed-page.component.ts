@@ -29,12 +29,9 @@ import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-
 import { ConnectStripComponent } from '../../shared/components/connect-strip/connect-strip.component';
 import { FeedSkeletonComponent } from '../../shared/components/feed-skeleton/feed-skeleton.component';
 
-import { FormsModule } from '@angular/forms';
-
 @Component({
   selector: 'app-feed-page',
   imports: [
-    FormsModule,
     PostCardComponent,
     PostComposerComponent,
     DesktopSidebarComponent,
@@ -59,27 +56,6 @@ import { FormsModule } from '@angular/forms';
 
         <!-- 2. Main Center Feed Column (minmax 0 to 680px) -->
         <main class="w-full max-w-[680px] shrink min-w-0 space-y-4 pb-20 md:pb-8">
-          <!-- Top Global Search -->
-          <section aria-label="Global search">
-            <div class="relative w-full">
-              <label for="global-search-input" class="sr-only">Search people, businesses and posts</label>
-              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-content-muted">
-                <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <input
-                id="global-search-input"
-                type="search"
-                [(ngModel)]="searchQuery"
-                (keydown.enter)="onSearchSubmit()"
-                placeholder="Search people, businesses and posts"
-                class="w-full rounded-xl border border-border-subtle bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-content-primary placeholder:text-content-muted shadow-card transition-all duration-150 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/15"
-              />
-            </div>
-          </section>
-
           <!-- Horizontal Connect Discovery Strip ("Connect" / Story strip) -->
           <app-connect-strip (addStory)="triggerCreate()" />
 
@@ -315,8 +291,6 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy {
   readonly managedBusinesses = signal<Business[]>([]);
   readonly activeFilter = signal<'for-you' | 'following'>('for-you');
 
-  searchQuery = '';
-
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private observer?: IntersectionObserver;
@@ -375,12 +349,6 @@ export class FeedPageComponent implements AfterViewInit, OnDestroy {
   triggerCreate(): void {
     this.composerComponent?.expand();
     this.composerRef?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  onSearchSubmit(): void {
-    if (this.searchQuery.trim()) {
-      void this.router.navigate(['/search'], { queryParams: { q: this.searchQuery.trim() } });
-    }
   }
 
   edit(post: Post): void {

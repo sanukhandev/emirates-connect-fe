@@ -245,10 +245,10 @@ import { PostPollComponent } from './post-poll/post-poll.component';
               class="hover:text-brand-600 cursor-pointer focus-visible:outline-none"
               (click)="commentsOpen.set(!commentsOpen())"
             >
-              {{ post().comments_count ?? 12 }} comments
+              {{ post().comments_count ?? 0 }} comments
             </button>
           }
-          <span>{{ post().shares_count ?? 4 }} shares</span>
+          <span>{{ post().shares_count ?? 0 }} shares</span>
         </div>
       </div>
 
@@ -428,7 +428,7 @@ export class PostCardComponent {
   }
 
   reactionTotal(): number {
-    return this.post().reactions?.total ?? 128;
+    return this.post().reactions?.total ?? 0;
   }
 
   canReport(): boolean {

@@ -5,8 +5,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Reel } from '../../core/reel/reel.models';
 import { ReelService } from '../../core/reel/reel.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { AuthStateService } from '../../core/auth/auth-state.service';
-import { ProfileService } from '../../core/profile/profile.service';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
@@ -35,72 +33,7 @@ import { ReelCardComponent } from './reel-card.component';
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[1080px] shrink min-w-0 space-y-6 pb-24 md:pb-10">
-          <!-- Application Shell Top Global Header -->
-          <section aria-label="Global application bar" class="flex items-center justify-between gap-3 sm:gap-4">
-            <!-- Global Search -->
-            <div class="relative flex-1 max-w-xl">
-              <label for="global-reel-detail-search" class="sr-only">Search people, businesses and posts</label>
-              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-content-muted">
-                <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <input
-                id="global-reel-detail-search"
-                type="search"
-                (keydown.enter)="onGlobalSearch($event)"
-                placeholder="Search people, businesses and posts"
-                class="w-full rounded-xl border border-border-subtle bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-content-primary placeholder:text-content-muted shadow-card transition-all duration-150 focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-primary/15"
-              />
-            </div>
-
-            <!-- Header Quick Actions -->
-            <div class="flex items-center gap-2 sm:gap-3">
-              @if (auth.isAuthenticated()) {
-                <a
-                  routerLink="/reels/create"
-                  class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-brand-primary px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition hover:bg-brand-hover active:scale-95"
-                >
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  <span>Create</span>
-                </a>
-
-                <a
-                  routerLink="/notifications"
-                  class="flex h-10 w-10 items-center justify-center rounded-xl border border-border-subtle bg-white text-content-secondary shadow-card transition hover:border-brand-primary hover:text-brand-primary active:scale-95"
-                  aria-label="View notifications"
-                >
-                  <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                </a>
-
-                <a
-                  routerLink="/profile"
-                  class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-border-subtle bg-brand-soft font-bold text-brand-strong shadow-card transition hover:ring-2 hover:ring-brand-primary/30"
-                  aria-label="View my profile"
-                >
-                  @if (userAvatar()) {
-                    <img [src]="userAvatar()!" alt="User avatar" class="h-full w-full object-cover" />
-                  } @else {
-                    <span class="text-xs uppercase">{{ userInitials() }}</span>
-                  }
-                </a>
-              } @else {
-                <a
-                  routerLink="/auth/login"
-                  class="rounded-xl bg-brand-primary px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-brand-hover transition"
-                >
-                  Sign in
-                </a>
-              }
-            </div>
-          </section>
+          <!-- Back Navigation Bar -->
 
           <!-- Back Navigation Bar -->
           <div class="flex items-center justify-between">
@@ -166,8 +99,6 @@ export class ReelDetailComponent {
   readonly error = signal(false);
 
   readonly auth = inject(AuthService);
-  private readonly authState = inject(AuthStateService);
-  private readonly profileService = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly service = inject(ReelService);
   private readonly router = inject(Router);
@@ -193,27 +124,6 @@ export class ReelDetailComponent {
           this.error.set(true);
         },
       });
-  }
-
-  userAvatar(): string | null {
-    return this.profileService.profile()?.avatar_url ?? null;
-  }
-
-  userInitials(): string {
-    const name =
-      this.profileService.profile()?.display_name ||
-      this.authState.currentUser()?.name ||
-      this.authState.currentUser()?.email ||
-      'EC';
-    return name.slice(0, 2).toUpperCase();
-  }
-
-  onGlobalSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const query = input.value.trim();
-    if (query) {
-      void this.router.navigate(['/search'], { queryParams: { q: query } });
-    }
   }
 
   logout(): void {

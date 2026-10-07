@@ -9,7 +9,6 @@ import { CommentSectionComponent } from '../../shared/components/comment-section
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
@@ -21,7 +20,6 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
     EmptyStateComponent,
   ],
   template: `
@@ -38,8 +36,6 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[760px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header />
 
           <!-- Back Navigation Bar -->
           <div class="flex items-center justify-between">

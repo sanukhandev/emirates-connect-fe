@@ -18,7 +18,6 @@ import {
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -33,7 +32,6 @@ const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'imag
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -49,8 +47,6 @@ const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'imag
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[800px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header />
 
           <!-- Main Verification Card -->
           <section class="rounded-3xl border border-border-subtle bg-surface-card p-5 sm:p-8 shadow-card">

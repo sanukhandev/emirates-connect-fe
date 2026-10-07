@@ -37,7 +37,7 @@ interface FollowBusiness {
   selector: 'app-right-sidebar',
   imports: [DatePipe, RouterLink, VerificationBadgeComponent],
   template: `
-    <aside class="sticky top-6 flex w-72 flex-col gap-4.5 xl:w-80" aria-label="Contextual Discovery">
+    <aside class="sticky top-20 flex w-72 flex-col gap-4.5 xl:w-80" aria-label="Contextual Discovery">
       <!-- CARD 1: Suggested Connections -->
       <section class="rounded-2xl border border-border-subtle bg-surface-card p-4 shadow-card">
         <div class="flex items-center justify-between pb-3 border-b border-border-subtle">

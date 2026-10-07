@@ -9,7 +9,6 @@ import { FollowService } from '../../core/follow/follow.service';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 import { UserIdentityComponent } from '../../shared/components/user-identity/user-identity.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
@@ -22,7 +21,6 @@ type NetworkKind = 'user-followers' | 'user-following' | 'business-followers';
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
     UserIdentityComponent,
     EmptyStateComponent,
   ],
@@ -40,8 +38,6 @@ type NetworkKind = 'user-followers' | 'user-following' | 'business-followers';
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[920px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header />
 
           <!-- Page Header Card -->
           <header class="rounded-2xl border border-border-subtle bg-surface-card p-5 sm:p-6 shadow-card">

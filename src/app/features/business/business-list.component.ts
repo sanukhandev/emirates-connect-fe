@@ -10,7 +10,6 @@ import { BusinessService } from '../../core/business/business.service';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
-import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 @Component({
   selector: 'app-business-list',
@@ -20,7 +19,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
-    AppHeaderComponent,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -36,9 +34,6 @@ import { AppHeaderComponent } from '../../shared/components/app-header/app-heade
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[1080px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Top Application Header -->
-          <app-header createLabel="Create Business" createRoute="/businesses/create" />
-
           <!-- Businesses Page Header Bar -->
           <header class="flex flex-wrap items-end justify-between gap-4 border-b border-border-subtle pb-5">
             <div class="space-y-1">

@@ -65,7 +65,9 @@ import { PostPoll } from '../../../core/post/post.models';
       <!-- Footer Info -->
       <div class="mt-3 flex items-center justify-between text-xs text-content-muted">
         <span>{{ totalVotes() }} votes</span>
-        <span>{{ poll().days_remaining ?? 2 }} days remaining</span>
+        @if (poll().days_remaining !== undefined && poll().days_remaining !== null) {
+          <span>{{ poll().days_remaining }} days remaining</span>
+        }
       </div>
     </div>
   `,
