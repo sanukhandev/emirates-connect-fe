@@ -3,82 +3,205 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { FollowerUser, FollowTarget, PaginatedFollowers, PaginatedFollowing } from '../../core/follow/follow.models';
 import { FollowService } from '../../core/follow/follow.service';
+import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
+import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
+import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
+import { UserIdentityComponent } from '../../shared/components/user-identity/user-identity.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 type NetworkKind = 'user-followers' | 'user-following' | 'business-followers';
 
 @Component({
   selector: 'app-network-list',
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    DesktopSidebarComponent,
+    MobileHeaderComponent,
+    MobileBottomNavComponent,
+    AppHeaderComponent,
+    UserIdentityComponent,
+    EmptyStateComponent,
+  ],
   template: `
-    <main class="min-h-screen bg-canvas px-4 py-6 text-content-primary sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-5xl">
-        <a routerLink="/" class="text-sm font-medium text-brand-strong">← Home</a>
-        <header class="mt-6 border-b border-border-subtle pb-5">
-          <h1 class="text-3xl font-bold">{{ title() }}</h1>
-          <p class="mt-2 text-content-secondary">{{ subtitle() }}</p>
-        </header>
+    <div class="min-h-screen bg-canvas text-content-primary">
+      <!-- Mobile Header (<= 768px) -->
+      <app-mobile-header />
 
-        @if (loading()) {
-          <div class="mt-8 space-y-3" aria-label="Loading network" role="status">
-            @for (item of [1, 2, 3]; track item) { <div class="h-20 animate-pulse rounded-2xl bg-surface-muted"></div> }
-          </div>
-        } @else if (notFound()) {
-          <section class="mt-8 rounded-3xl bg-surface-card p-8 text-center shadow-card">
-            <h2 class="text-2xl font-bold">Network unavailable</h2>
-            <p class="mt-2 text-content-secondary">This profile or business is unavailable.</p>
-          </section>
-        } @else if (error()) {
-          <section class="mt-8 rounded-3xl bg-surface-card p-8 text-center shadow-card">
-            <h2 class="text-2xl font-bold">Unable to load this network.</h2>
-            <button type="button" class="mt-5 rounded-xl bg-brand-primary px-4 py-3 text-sm font-medium text-white" (click)="load()">Retry</button>
-          </section>
-        } @else if (kind() === 'user-following') {
-          @if (!targets().length) { <p class="mt-8 rounded-3xl bg-surface-card p-8 text-center text-content-secondary">Not following anyone yet.</p> }
-          <section class="mt-8 space-y-3" aria-label="Following">
-            @for (target of targets(); track target.type + ':' + target.id) {
-              @if (target.type === 'user') {
-                <a [routerLink]="['/users', target.id]" class="flex items-center gap-4 rounded-2xl bg-surface-card p-4 shadow-card transition hover:-translate-y-0.5">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft font-bold text-brand-strong">
-                    @if (target.avatar_url) { <img [src]="target.avatar_url" [alt]="target.display_name || target.name" class="h-full w-full object-cover" /> } @else { {{ initials(target.display_name || target.name) }} }
-                  </div>
-                  <div class="min-w-0"><h2 class="font-semibold">{{ target.display_name || target.name }}</h2><p class="truncate text-sm text-content-secondary">{{ target.headline || 'Professional on Emirates Connect' }}</p></div>
-                </a>
-              } @else {
-                <a [routerLink]="['/businesses', target.slug]" class="flex items-center gap-4 rounded-2xl bg-surface-card p-4 shadow-card transition hover:-translate-y-0.5">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft font-bold text-brand-strong">
-                    @if (target.logo_url) { <img [src]="target.logo_url" [alt]="target.name + ' logo'" class="h-full w-full object-cover" /> } @else { {{ initials(target.name) }} }
-                  </div>
-                  <div class="min-w-0"><h2 class="font-semibold">{{ target.name }}</h2><p class="text-sm text-content-secondary">Business</p></div>
-                </a>
-              }
-            }
-          </section>
-        } @else {
-          @if (!users().length) { <p class="mt-8 rounded-3xl bg-surface-card p-8 text-center text-content-secondary">No followers yet.</p> }
-          <section class="mt-8 space-y-3" aria-label="Followers">
-            @for (user of users(); track user.id) {
-              <a [routerLink]="['/users', user.id]" class="flex items-center gap-4 rounded-2xl bg-surface-card p-4 shadow-card transition hover:-translate-y-0.5">
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft font-bold text-brand-strong">
-                  @if (user.profile.avatar_url) { <img [src]="user.profile.avatar_url" [alt]="user.profile.display_name || user.name" class="h-full w-full object-cover" /> } @else { {{ initials(user.profile.display_name || user.name) }} }
-                </div>
-                <div class="min-w-0"><h2 class="font-semibold">{{ user.profile.display_name || user.name }}</h2><p class="truncate text-sm text-content-secondary">{{ user.profile.headline || 'Professional on Emirates Connect' }}</p></div>
+      <!-- Main Shell Container -->
+      <div class="mx-auto flex max-w-[1440px] justify-center gap-6 px-3.5 py-4 sm:px-6 lg:gap-8 lg:px-8 lg:py-6">
+        <!-- 1. Left Desktop Sidebar (sticky, 240-256px) -->
+        <div class="hidden md:block shrink-0">
+          <app-desktop-sidebar (logoutClick)="logout()" />
+        </div>
+
+        <!-- 2. Main Content Column -->
+        <main class="w-full max-w-[920px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
+          <!-- Top Application Header -->
+          <app-header />
+
+          <!-- Page Header Card -->
+          <header class="rounded-2xl border border-border-subtle bg-surface-card p-5 sm:p-6 shadow-card">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-brand-600">Professional Network</p>
+                <h1 class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-content-primary">
+                  {{ title() }}
+                </h1>
+                <p class="mt-1 text-xs sm:text-sm text-content-secondary">
+                  {{ subtitle() }}
+                </p>
+              </div>
+
+              <!-- Back Link -->
+              <a
+                [routerLink]="backRoute()"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface-secondary px-3.5 py-2 text-xs font-semibold text-content-primary transition hover:border-brand-primary/40 hover:text-brand-primary"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                <span>Back</span>
               </a>
-            }
-          </section>
-        }
+            </div>
+          </header>
 
-        @if (!loading() && !notFound() && !error() && hasMore()) {
-          <div class="mt-6 text-center">
-            <button type="button" class="rounded-xl border border-border-subtle bg-surface-card px-4 py-3 text-sm font-medium disabled:opacity-50" [disabled]="loadingMore()" (click)="loadMore()">
-              {{ loadingMore() ? 'Loading…' : 'Load more' }}
-            </button>
-            @if (loadMoreError()) { <p role="alert" class="mt-3 text-sm text-status-danger">Couldn’t load more. <button type="button" class="font-medium underline" (click)="loadMore()">Retry</button></p> }
-          </div>
-        }
+          <!-- Loading State -->
+          @if (loading()) {
+            <div class="space-y-3" aria-label="Loading network" role="status">
+              @for (item of [1, 2, 3, 4]; track item) {
+                <div class="h-20 animate-pulse rounded-2xl bg-surface-muted"></div>
+              }
+            </div>
+          } @else if (notFound()) {
+            <app-empty-state
+              icon="info"
+              title="Network unavailable"
+              description="This profile or business is unavailable or has been removed."
+              actionLabel="Return to feed"
+              actionRoute="/"
+            />
+          } @else if (error()) {
+            <app-empty-state
+              icon="info"
+              title="Unable to load this network"
+              description="A temporary connection issue occurred while fetching members."
+              actionLabel="Retry"
+              (actionClick)="load()"
+            />
+          } @else if (kind() === 'user-following') {
+            <!-- Following List (Users & Businesses) -->
+            @if (!targets().length) {
+              <app-empty-state
+                icon="users"
+                title="Not following anyone yet"
+                description="Follow professionals and verified businesses to see their latest updates in your feed."
+                actionLabel="Discover Network"
+                actionRoute="/search"
+              />
+            } @else {
+              <section class="overflow-hidden rounded-2xl border border-border-subtle bg-surface-card shadow-card divide-y divide-border-subtle" aria-label="Following">
+                @for (target of targets(); track target.type + ':' + target.id) {
+                  @if (target.type === 'user') {
+                    <div class="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-surface-secondary/50">
+                      <app-user-identity
+                        [name]="target.display_name || target.name"
+                        [id]="target.id"
+                        [avatarUrl]="target.avatar_url"
+                        [headline]="target.headline || 'Professional on Emirates Connect'"
+                        type="user"
+                        size="md"
+                      />
+                      <a
+                        [routerLink]="['/users', target.id]"
+                        class="shrink-0 rounded-xl border border-border-subtle bg-surface-card px-3 py-1.5 text-xs font-semibold text-content-primary shadow-xs transition hover:border-brand-primary hover:text-brand-primary"
+                      >
+                        View
+                      </a>
+                    </div>
+                  } @else {
+                    <div class="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-surface-secondary/50">
+                      <app-user-identity
+                        [name]="target.name"
+                        [slug]="target.slug"
+                        [avatarUrl]="target.logo_url"
+                        headline="Verified Business"
+                        type="business"
+                        size="md"
+                      />
+                      <a
+                        [routerLink]="['/businesses', target.slug]"
+                        class="shrink-0 rounded-xl border border-border-subtle bg-surface-card px-3 py-1.5 text-xs font-semibold text-content-primary shadow-xs transition hover:border-brand-primary hover:text-brand-primary"
+                      >
+                        View
+                      </a>
+                    </div>
+                  }
+                }
+              </section>
+            }
+          } @else {
+            <!-- Followers List -->
+            @if (!users().length) {
+              <app-empty-state
+                icon="users"
+                title="No followers yet"
+                description="When professionals follow this profile, they will appear here."
+                actionLabel="Explore Network"
+                actionRoute="/search"
+              />
+            } @else {
+              <section class="overflow-hidden rounded-2xl border border-border-subtle bg-surface-card shadow-card divide-y divide-border-subtle" aria-label="Followers">
+                @for (user of users(); track user.id) {
+                  <div class="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-surface-secondary/50">
+                    <app-user-identity
+                      [name]="user.profile.display_name || user.name"
+                      [id]="user.id"
+                      [avatarUrl]="user.profile.avatar_url"
+                      [headline]="user.profile.headline || 'Professional on Emirates Connect'"
+                      [isVerified]="user.profile.is_verified"
+                      type="user"
+                      size="md"
+                    />
+                    <a
+                      [routerLink]="['/users', user.id]"
+                      class="shrink-0 rounded-xl border border-border-subtle bg-surface-card px-3 py-1.5 text-xs font-semibold text-content-primary shadow-xs transition hover:border-brand-primary hover:text-brand-primary"
+                    >
+                      View
+                    </a>
+                  </div>
+                }
+              </section>
+            }
+          }
+
+          <!-- Pagination Controls -->
+          @if (!loading() && !notFound() && !error() && hasMore()) {
+            <div class="text-center pt-2">
+              <button
+                type="button"
+                class="ec-btn-secondary px-5 py-2.5"
+                [disabled]="loadingMore()"
+                (click)="loadMore()"
+              >
+                {{ loadingMore() ? 'Loading more…' : 'Load more connections' }}
+              </button>
+              @if (loadMoreError()) {
+                <p role="alert" class="mt-3 text-xs text-status-danger">
+                  Couldn’t load more connections. <button type="button" class="font-medium underline" (click)="loadMore()">Retry</button>
+                </p>
+              }
+            </div>
+          }
+        </main>
       </div>
-    </main>
+
+      <!-- Mobile Bottom Navigation -->
+      <app-mobile-bottom-nav />
+    </div>
   `,
 })
 export class NetworkListComponent {
@@ -94,6 +217,7 @@ export class NetworkListComponent {
 
   private readonly route = inject(ActivatedRoute);
   private readonly follow = inject(FollowService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private page = 1;
 
@@ -102,12 +226,30 @@ export class NetworkListComponent {
     this.load();
   }
 
+  logout(): void {
+    this.auth.logout();
+  }
+
   title(): string {
     return this.kind() === 'user-following' ? 'Following' : 'Followers';
   }
 
   subtitle(): string {
-    return this.kind() === 'user-following' ? 'People and businesses followed by this account.' : 'Public members of the Emirates Connect network.';
+    return this.kind() === 'user-following'
+      ? 'People and businesses followed by this account.'
+      : 'Public members connected on Emirates Connect.';
+  }
+
+  backRoute(): string[] {
+    const userId = this.route.snapshot.paramMap.get('id');
+    const slug = this.route.snapshot.paramMap.get('slug');
+    if (this.kind() === 'business-followers' && slug) {
+      return ['/businesses', slug];
+    }
+    if (userId) {
+      return ['/users', userId];
+    }
+    return ['/'];
   }
 
   load(page = 1, append = false): void {
@@ -133,15 +275,15 @@ export class NetworkListComponent {
         this.page = response.meta.current_page;
         this.hasMore.set(response.meta.current_page < response.meta.last_page);
         if (this.kind() === 'user-following') {
-          const page = response as PaginatedFollowing;
+          const res = response as PaginatedFollowing;
           const existing = append ? this.targets() : [];
           const seen = new Set(existing.map((target) => target.type + ':' + target.id));
-          this.targets.set([...existing, ...page.data.filter((target) => !seen.has(target.type + ':' + target.id))]);
+          this.targets.set([...existing, ...res.data.filter((target) => !seen.has(target.type + ':' + target.id))]);
         } else {
-          const page = response as PaginatedFollowers;
+          const res = response as PaginatedFollowers;
           const existing = append ? this.users() : [];
           const seen = new Set(existing.map((user) => user.id));
-          this.users.set([...existing, ...page.data.filter((user) => !seen.has(user.id))]);
+          this.users.set([...existing, ...res.data.filter((user) => !seen.has(user.id))]);
         }
         this.loading.set(false);
         this.loadingMore.set(false);
@@ -159,9 +301,5 @@ export class NetworkListComponent {
 
   loadMore(): void {
     this.load(this.page + 1, true);
-  }
-
-  initials(name: string): string {
-    return name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
 }

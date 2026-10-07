@@ -78,7 +78,10 @@ import { PostPollComponent } from './post-poll/post-poll.component';
               }
             </div>
 
-            <!-- Author Headline & Timestamp -->
+            <!-- Author Handle & Headline -->
+            <p class="truncate text-[11px] font-medium text-brand-strong/75 leading-tight mt-0.5">
+              {{ authorHandle() }}
+            </p>
             <p class="truncate text-xs text-content-secondary leading-tight mt-0.5">
               {{ authorHeadline() }}
             </p>
@@ -472,5 +475,18 @@ export class PostCardComponent {
     this.isSaved.update((s) => !s);
     this.message.set(this.isSaved() ? 'Saved to bookmarks.' : 'Removed from bookmarks.');
     setTimeout(() => this.message.set(''), 3000);
+  }
+
+  authorHandle(): string {
+    const author = this.post().author;
+    if (author.type === 'business') {
+      return `b/${author.slug || this.cleanHandle(author.name)}`;
+    }
+    const raw = author.display_name || author.name;
+    return `e/${this.cleanHandle(raw)}`;
+  }
+
+  private cleanHandle(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9_]/g, '') || 'member';
   }
 }

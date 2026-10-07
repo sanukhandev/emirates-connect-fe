@@ -59,6 +59,7 @@ interface FollowBusiness {
                       <app-verification-badge type="professional" />
                     }
                   </div>
+                  <p class="truncate text-[10px] font-medium text-brand-strong/75">{{ userHandle(user.name) }}</p>
                   <p class="truncate text-[11px] text-content-secondary">{{ user.role }} · {{ user.location }}</p>
                 </div>
               </div>
@@ -134,6 +135,7 @@ interface FollowBusiness {
                       <app-verification-badge type="business" />
                     }
                   </div>
+                  <p class="truncate text-[10px] font-medium text-brand-strong/75">{{ bizHandle(biz) }}</p>
                   <p class="truncate text-[11px] text-content-secondary">{{ biz.industry }} · {{ biz.location }}</p>
                 </div>
               </div>
@@ -231,5 +233,13 @@ export class RightSidebarComponent {
     if (!current) return;
     const request = current.is_rsvped ? this.events.cancel(current) : this.events.rsvp(current);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((updated) => this.upcoming.update((items) => items.map((item) => item.id === updated.id ? updated : item)));
+  }
+
+  userHandle(name: string): string {
+    return 'e/' + (name.toLowerCase().replace(/[^a-z0-9_]/g, '') || 'member');
+  }
+
+  bizHandle(biz: FollowBusiness): string {
+    return 'b/' + (biz.slug || biz.name.toLowerCase().replace(/[^a-z0-9_]/g, '') || 'business');
   }
 }

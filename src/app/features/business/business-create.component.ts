@@ -9,6 +9,7 @@ import { BusinessFormComponent } from './business-form.component';
 import { DesktopSidebarComponent } from '../../layout/desktop-sidebar/desktop-sidebar.component';
 import { MobileHeaderComponent } from '../../layout/mobile-header/mobile-header.component';
 import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-bottom-nav.component';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 @Component({
   selector: 'app-business-create',
@@ -18,6 +19,7 @@ import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-
     DesktopSidebarComponent,
     MobileHeaderComponent,
     MobileBottomNavComponent,
+    AppHeaderComponent,
   ],
   template: `
     <div class="min-h-screen bg-canvas text-content-primary">
@@ -33,57 +35,8 @@ import { MobileBottomNavComponent } from '../../layout/mobile-bottom-nav/mobile-
 
         <!-- 2. Main Content Column -->
         <main class="w-full max-w-[1080px] shrink min-w-0 space-y-6 pb-20 md:pb-10">
-          <!-- Shell Top Global Header -->
-          <section aria-label="Global application bar" class="flex items-center justify-between gap-3 sm:gap-4">
-            <div class="relative flex-1 max-w-xl">
-              <label for="global-business-search" class="sr-only">Search people, businesses and posts</label>
-              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-content-muted">
-                <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <input
-                id="global-business-search"
-                type="search"
-                (keydown.enter)="onGlobalSearch($event)"
-                placeholder="Search people, businesses and posts"
-                class="w-full rounded-xl border border-border-subtle bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-content-primary placeholder:text-content-muted shadow-card transition-all duration-150 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/15"
-              />
-            </div>
-
-            <div class="flex items-center gap-2 sm:gap-3">
-              <a
-                routerLink="/notifications"
-                class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border-subtle bg-white text-content-secondary shadow-card transition-colors hover:bg-surface-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                aria-label="Notifications"
-                title="Notifications"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white"></span>
-              </a>
-
-              <a
-                routerLink="/profile"
-                class="flex items-center gap-2 rounded-xl border border-border-subtle bg-white p-1 sm:pr-3 shadow-card transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                title="Your Profile"
-              >
-                <div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-brand-100 text-xs font-bold text-brand-700">
-                  @if (profile.profile()?.avatar_url) {
-                    <img [src]="profile.profile()?.avatar_url" alt="" class="h-full w-full object-cover" />
-                  } @else {
-                    {{ initials(profile.profile()?.display_name || auth.currentUser()?.name || '') }}
-                  }
-                </div>
-                <span class="hidden text-xs font-medium text-content-primary lg:inline max-w-[110px] truncate">
-                  {{ profile.profile()?.display_name || auth.currentUser()?.name }}
-                </span>
-              </a>
-            </div>
-          </section>
+          <!-- Top Application Header -->
+          <app-header [showCreate]="false" />
 
           <!-- Breadcrumbs and Back Link -->
           <div class="flex items-center gap-2 text-sm text-content-secondary">

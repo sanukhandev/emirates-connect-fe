@@ -27,7 +27,7 @@
 
   --ec-content-primary: #17171c;
   --ec-content-secondary: #676773;
-  --ec-content-muted: #9696a2;
+  --ec-content-muted: #6e6e7c;
 
   --ec-status-success: #2f9e68;
   --ec-status-warning: #c78a2c;
@@ -94,6 +94,22 @@ body {
 
 .auth-button {
   @apply w-full rounded-xl bg-brand-primary px-4 py-3 font-medium text-white transition hover:bg-brand-hover focus:outline-none focus:ring-4 focus:ring-brand-primary/25 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.ec-btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition-all duration-150 hover:bg-brand-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.ec-btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-card px-4 py-2.5 text-sm font-medium text-content-primary shadow-xs transition-all duration-150 hover:bg-surface-secondary hover:border-brand-primary/40 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.ec-btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-status-danger/30 bg-status-danger/10 px-4 py-2.5 text-sm font-semibold text-status-danger transition-all duration-150 hover:bg-status-danger hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-danger disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.ec-input {
+  @apply block w-full rounded-xl border border-border-subtle bg-white px-3.5 py-2.5 text-sm text-content-primary placeholder:text-content-muted outline-none transition-all duration-150 focus:border-brand-primary focus:ring-3 focus:ring-brand-primary/15 disabled:bg-surface-muted disabled:cursor-not-allowed;
 }
 
 .field-error {
